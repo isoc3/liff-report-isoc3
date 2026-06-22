@@ -41,11 +41,8 @@
 </div>
 
 <script>
-  // LIFF ID ของคุณ
   const MY_LIFF_ID = "2010041585-Xig31aUQ"; 
-  
-  // URL API ที่คุณสร้างใหม่
-  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyti1zZdk7phbaUjvDJvuC4hZlaL9LboYnAsyD412HwnDeqjc_8W-5S7pbrIXRS93IlVQ/exec";
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwG0KvKjzscAfq8UlAoQDNgHmxpLfIVEBOGL3mYf4lwYv9JsHnpNGVWwQyKAfrQHXFjQQ/exec";
 
   let serverData = null;
 
@@ -59,11 +56,17 @@
       
       document.getElementById('statusText').innerText = "🔄 กำลังโหลดข้อมูลจากฐานข้อมูล...";
       
-      // ดึงข้อมูลผ่าน API
-      const response = await fetch(GAS_API_URL);
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
+      // เพิ่ม redirect: "follow" เพื่อป้องกันการโดนบล็อกการเปลี่ยนเส้นทางของ Google
+      const response = await fetch(GAS_API_URL, {
+        method: "GET",
+        redirect: "follow",
+        headers: {
+          "Content-Type": "text/plain;charset=utf-8",
+        }
+      });
+      
+      if (!response.ok) throw new Error("ดึงข้อมูลไม่สำเร็จ");
+      
       serverData = await response.json();
       
       document.getElementById('statusText').innerText = "💡 กรุณาติ๊กเลือกหัวข้อที่ต้องการแชร์ลงกลุ่ม LINE:";
@@ -72,8 +75,7 @@
 
     } catch (err) {
       console.error(err);
-      alert("Error: " + err.message);
-      document.getElementById('statusText').innerText = "❌ เกิดข้อผิดพลาดในการดึงข้อมูล (ตรวจสอบสิทธิ์ Google Apps Script)";
+      document.getElementById('statusText').innerHTML = `<span style="color:red;">❌ Error: ${err.message}<br><small>(โปรดตรวจสอบสิทธิ์การ Deploy ใน Google Sheet)</small></span>`;
     }
   };
 
