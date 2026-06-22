@@ -30,7 +30,7 @@
     <p>ศูนย์รวมการแชร์รายงานบูรณาการ (Carousel)</p>
   </div>
   <div class="content">
-    <div class="instruction" id="statusText">⏳ กำลังเชื่อมต่อข้อมูล...</div>
+    <div class="instruction" id="statusText">⏳ กำลังโหลดข้อมูลล่าสุดจาก Sheets...</div>
     <div class="checkbox-group">
       <label class="checkbox-card"><input type="checkbox" id="chkFire" checked><span class="checkbox-label">🔥 รายงานไฟป่าและฝุ่น</span></label>
       <label class="checkbox-card"><input type="checkbox" id="chkWeir" checked><span class="checkbox-label">💧 รายงานการสร้างฝาย</span></label>
@@ -41,13 +41,11 @@
 </div>
 
 <script>
-  // 🚨 1. LIFF ID อันใหม่แยกเฉพาะของขบวน Carousel
+  // 🚨 กำหนดตัวแปร LIFF และ API URL
   const MY_LIFF_ID = "2010468749-0aq8Z3bf"; 
-  
-  // 🚨 2. URL API จาก Google Apps Script (ตัวล่าสุด)
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwdkeaxpJXAhKnb_d0qMoVZvDY1c4snIqFqECqjxY7ZEDwsDxDA_TZZpdd7FIM9FPvpXg/exec";
 
-  // ค่าคงที่ลิงก์โลโก้ตามบรีฟ
+  // 🚨 ลิงก์รูปโลโก้ (บังคับต้องเป็น https:// เท่านั้น)
   const LOGO_LEFT = "https://lh3.googleusercontent.com/d/1BN7SKJAsPCyBx3cUV_LNDXRcjnP86Th1";
   const LOGO_RIGHT_FIRE = "https://lh3.googleusercontent.com/d/1vereUg2XeLoYyKQSiamrJpaHNgmrgwj4";
   const LOGO_RIGHT_WF = "https://lh3.googleusercontent.com/d/1PBPcdEyPAVRUinc_9V5TrDxhMNOPS64K";
@@ -59,21 +57,21 @@
       await liff.init({ liffId: MY_LIFF_ID });
       if (!liff.isLoggedIn()) { liff.login(); return; }
       
-      document.getElementById('statusText').innerText = "🔄 กำลังโหลดข้อมูลล่าสุดจาก Sheets...";
-      
-      // เรียกใช้เทคนิค JSONP เพื่อทะลุกำแพงความปลอดภัยองค์กร
       const script = document.createElement('script');
       script.src = GAS_API_URL + "?callback=liffCallback";
       document.body.appendChild(script);
 
     } catch (err) {
-      document.getElementById('statusText').innerText = "❌ เกิดข้อผิดพลาดตอน Init: " + err.message;
+      document.getElementById('statusText').innerText = "❌ เกิดข้อผิดพลาด Init: " + err.message;
     }
   };
 
-  // ฟังก์ชันรับข้อมูลกลับจากฝั่ง Google
   function liffCallback(data) {
     if(data) {
+      if(data.error) {
+        document.getElementById('statusText').innerText = "❌ Error จาก Sheet: " + data.error;
+        return;
+      }
       serverData = data;
       document.getElementById('statusText').innerText = "💡 กรุณาติ๊กเลือกการ์ดที่ต้องการส่งรวมกัน:";
       document.getElementById('shareBtn').disabled = false;
@@ -103,7 +101,6 @@
       return;
     }
 
-    // รวมร่าง: ถ้ามี 1 ใบส่งเป็น bubble, มากกว่า 1 ใบส่งเป็น Carousel (ขบวนรถไฟ)
     let finalContents = selectedBubbles.length === 1 ? selectedBubbles[0] : { "type": "carousel", "contents": selectedBubbles };
 
     try {
@@ -114,13 +111,13 @@
       }]);
       liff.closeWindow();
     } catch (e) {
-      btn.disabled = false; btn.innerText = "💬 ส่งรายงานเข้าแชท LINE";
+      btn.disabled = false; 
+      btn.innerText = "💬 ส่งรายงานเข้าแชท LINE";
+      // 🚨 จุดดักจับ Error ถ้าแชร์ไม่ผ่าน จะเด้งบอกสาเหตุบนมือถือ
+      alert("❌ ไม่สามารถแชร์การ์ดได้\nสาเหตุ: " + e.message);
     }
   }
 
-  // ==========================================
-  // ส่วนสร้างหน้าตาการ์ด (ขนาดตัวอักษรพอดี + โลโก้เป๊ะตามบรีฟ)
-  // ==========================================
   function generateFireBubbleCode() {
     let hsBox = {};
     if (serverData.totalHS === 0) {
