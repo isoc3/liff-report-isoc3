@@ -41,7 +41,8 @@
 </div>
 
 <script>
-  const MY_LIFF_ID = "2010041585-Xig31aUQ"; 
+  // 🚨 อัปเดตเป็น LIFF ID อันใหม่ของคุณสำหรับ Carousel โดยเฉพาะ
+  const MY_LIFF_ID = "2010468749-0aq8Z3bf"; 
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzyWkYGD715xP1tcJuh5xej-N8RTnWqX9vENsONs3zp1ACIA6K12z8MQDM9sw5TSkvCWQ/exec";
 
   let serverData = null;
@@ -56,14 +57,12 @@
     }
   };
 
-  // --- เทคนิคใหม่: ทะลุกำแพง Redirect ของ Google Workspace ---
   function fetchDataWithJSONP(url) {
     const script = document.createElement('script');
     script.src = url + "?callback=handleServerResponse";
     document.body.appendChild(script);
   }
 
-  // --- ฟังก์ชันรับข้อมูลกลับจาก Google ---
   function handleServerResponse(data) {
     if(data) {
       serverData = data;
@@ -110,9 +109,8 @@
   }
 
   // ==========================================
-  // ส่วนสร้างการ์ด Flex Message คงเดิม
+  // ส่วนสร้างการ์ด Flex Message พร้อมปุ่มแชร์ต่อ
   // ==========================================
-  // --- ส่วนสร้างหน้าตาการ์ดแต่ละใบ (อัปเดตเพิ่มปุ่มแชร์ต่อ) ---
   function generateFireBubbleCode() {
     let hsBox = {};
     if (serverData.totalHS === 0) {
@@ -131,7 +129,7 @@
 
     let pmRows = serverData.top3PM.map((r, i) => ({ "type": "box", "layout": "horizontal", "paddingAll": "8px", "backgroundColor": "#f8fafc", "cornerRadius": "sm", "alignItems": "center", "contents": [{ "type": "text", "text": (i+1)+".", "weight": "bold", "size": "sm", "color": pmColor, "flex": 1 }, { "type": "text", "text": r.area, "size": "sm", "color": "#334155", "flex": 7, "wrap": true }, { "type": "text", "text": r.value + " µg", "weight": "bold", "size": "sm", "color": "#0f172a", "flex": 4, "align": "end" }] }));
 
-    const shareUrl = "https://liff.line.me/" + MY_LIFF_ID; // ดึง LIFF ID มาสร้างลิงก์แชร์
+    const shareUrl = "https://liff.line.me/" + MY_LIFF_ID; 
 
     return {
       "type": "bubble", "size": "mega", "body": {
