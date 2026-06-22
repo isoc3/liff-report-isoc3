@@ -41,36 +41,39 @@
 </div>
 
 <script>
-  // 🚨 1. นำ LIFF ID มาใส่ที่นี่
+  // LIFF ID ของคุณ
   const MY_LIFF_ID = "2010041585-Xig31aUQ"; 
   
-  // 🚨 2. นำ Web App URL ของ Google Apps Script ที่เพิ่งก็อปไว้ มาวางที่นี่
-  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw1nRA19Rhp6P9wpruwMv_CnQeyNQoi1YI3ms0vNc7b-N3GbzVklxey9C2KEpyHVKwzTw/exec";
+  // URL API ที่คุณสร้างใหม่
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwG0KvKjzscAfq8UlAoQDNgHmxpLfIVEBOGL3mYf4lwYv9JsHnpNGVWwQyKAfrQHXFjQQ/exec";
 
   let serverData = null;
 
   window.onload = async function() {
     try {
       await liff.init({ liffId: MY_LIFF_ID });
-      // ถ้ารันบนเว็บปกติ (ไม่ใช่แอปไลน์) ให้เด้งไปหน้าล็อกอิน
       if (!liff.isLoggedIn()) { 
         liff.login(); 
         return; 
       }
       
-      // ดึงข้อมูลจาก Google Sheets ผ่าน API
       document.getElementById('statusText').innerText = "🔄 กำลังโหลดข้อมูลจากฐานข้อมูล...";
+      
+      // ดึงข้อมูลผ่าน API
       const response = await fetch(GAS_API_URL);
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
       serverData = await response.json();
       
-      // ปลดล็อกปุ่มเมื่อดึงข้อมูลสำเร็จ
       document.getElementById('statusText').innerText = "💡 กรุณาติ๊กเลือกหัวข้อที่ต้องการแชร์ลงกลุ่ม LINE:";
       document.getElementById('shareBtn').disabled = false;
       document.getElementById('shareBtn').innerText = "💬 ส่งรายงานเข้าแชท LINE";
 
     } catch (err) {
+      console.error(err);
       alert("Error: " + err.message);
-      document.getElementById('statusText').innerText = "❌ เกิดข้อผิดพลาดในการดึงข้อมูล";
+      document.getElementById('statusText').innerText = "❌ เกิดข้อผิดพลาดในการดึงข้อมูล (ตรวจสอบสิทธิ์ Google Apps Script)";
     }
   };
 
@@ -108,7 +111,6 @@
     }
   }
 
-  // --- ฟังก์ชันสร้าง Flex (เหมือนเดิมเป๊ะ แค่ดึงค่าจาก serverData ตัวแปรใหม่) ---
   function generateFireBubbleCode() {
     let hsBox = {};
     if (serverData.totalHS === 0) {
@@ -136,7 +138,7 @@
               { "type": "box", "layout": "vertical", "backgroundColor": pmBg, "borderColor": pmBorder, "borderWidth": "1px", "cornerRadius": "md", "paddingAll": "15px", "contents": [{ "type": "text", "text": "📊 ภาพรวม 17 จังหวัดภาคเหนือ", "size": "xs", "color": pmColor, "weight": "bold" }, { "type": "box", "layout": "horizontal", "margin": "md", "alignItems": "center", "contents": [{ "type": "box", "layout": "vertical", "flex": 1, "contents": [{ "type": "text", "text": "ค่าเฉลี่ย PM2.5", "size": "xs", "color": "#64748b" }, { "type": "text", "text": serverData.avgPM + " µg/m³", "size": "xl", "weight": "bold", "color": pmColor, "margin": "xs" }] }, { "type": "box", "layout": "vertical", "backgroundColor": pmColor, "paddingStart": "10px", "paddingEnd": "10px", "paddingTop": "6px", "paddingBottom": "6px", "cornerRadius": "md", "contents": [{ "type": "text", "text": serverData.pmImpact, "color": "#ffffff", "size": "xs", "weight": "bold", "align": "center" }] }] }]},
               { "type": "box", "layout": "vertical", "contents": [{ "type": "text", "text": "🔥 3 อันดับที่มีจุดความร้อนมากที่สุด", "weight": "bold", "size": "sm", "color": "#0f172a" }, hsBox ]},
               { "type": "box", "layout": "vertical", "contents": [{ "type": "text", "text": "😷 3 อันดับที่มีค่า PM2.5 มากที่สุด", "weight": "bold", "size": "sm", "color": "#0f172a" }, { "type": "box", "layout": "vertical", "margin": "sm", "spacing": "xs", "contents": pmRows }]},
-              { "type": "text", "text": "🕒 ดึงข้อมูลระบบอัตโนมัติ ณ: " + serverData.updateTime, "size": "xs", "color": "#94a3b8", "align": "center", "margin": "sm" }
+              { "type": "text", "text": "🕒 ดึงข้อมูลอัตโนมัติ ณ: " + serverData.updateTime, "size": "xs", "color": "#94a3b8", "align": "center", "margin": "sm" }
             ]},
           { "type": "box", "layout": "horizontal", "backgroundColor": "#f8fafc", "paddingAll": "15px", "contents": [{ "type": "button", "style": "primary", "color": "#dc2626", "height": "sm", "action": { "type": "uri", "label": "📁 ดูรายละเอียด", "uri": "https://www.gistda.or.th" } }] }
         ]
@@ -156,6 +158,7 @@
                   { "type": "box", "layout": "baseline", "spacing": "sm", "contents": [{ "type": "text", "text": "พื้นที่/พิกัด:", "color": "#64748b", "size": "sm", "flex": 3 }, { "type": "text", "text": serverData.weir.loc, "wrap": true, "color": "#0f172a", "size": "sm", "flex": 7, "weight": "bold" }] },
                   { "type": "box", "layout": "baseline", "spacing": "sm", "contents": [{ "type": "text", "text": "ประเภทฝาย:", "color": "#64748b", "size": "sm", "flex": 3 }, { "type": "text", "text": serverData.weir.type, "wrap": true, "color": "#0f172a", "size": "sm", "flex": 7, "weight": "bold" }] },
                   { "type": "box", "layout": "baseline", "spacing": "sm", "contents": [{ "type": "text", "text": "ขนาดฝาย:", "color": "#64748b", "size": "sm", "flex": 3 }, { "type": "text", "text": serverData.weir.size, "wrap": true, "color": "#0f172a", "size": "sm", "flex": 7, "weight": "bold" }] },
+                  { "type": "box", "layout": "baseline", "contents": [{ "type": "text", "text": "จำนวน:", "size": "sm", "flex": 3 }, { "type": "text", "text": serverData.weir.qty, "flex": 3, "size": "sm", "weight": "bold" }] },
                   { "type": "box", "layout": "baseline", "spacing": "sm", "contents": [{ "type": "text", "text": "ประโยชน์:", "color": "#64748b", "size": "sm", "flex": 3 }, { "type": "text", "text": serverData.weir.benefit, "wrap": true, "color": "#0f172a", "size": "sm", "flex": 7, "weight": "bold" }] }
                 ]},
               { "type": "text", "text": "🕒 ข้อมูล ณ วันที่: " + serverData.updateTime, "size": "xs", "color": "#94a3b8", "margin": "xl", "align": "center" }
