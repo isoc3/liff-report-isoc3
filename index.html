@@ -30,13 +30,13 @@
     <p>ระบบศูนย์รวมการแชร์รายงานสถานการณ์ประจำวัน</p>
   </div>
   <div class="content">
-    <div class="instruction" id="statusText">⏳ กำลังเชื่อมต่อระบบ...</div>
+    <div class="instruction" id="statusText">⏳ กำลังเชื่อมต่อระบบข้อมูล...</div>
     <div class="checkbox-group">
       <label class="checkbox-card"><input type="checkbox" id="chkFire" checked><span class="checkbox-label">🔥 รายงานไฟป่าและฝุ่นหมอกควัน</span></label>
       <label class="checkbox-card"><input type="checkbox" id="chkWeir" checked><span class="checkbox-label">💧 รายงานสรุปการสร้าง/ซ่อมแซมฝาย</span></label>
       <label class="checkbox-card"><input type="checkbox" id="chkForest" checked><span class="checkbox-label">🌳 รายงานผลโครงการปลูกป่าทดแทน</span></label>
     </div>
-    <button class="btn-share" id="shareBtn" onclick="processAndShare()" disabled>⏳ รอสักครู่...</button>
+    <button class="btn-share" id="shareBtn" onclick="processAndShare()" disabled>⏳ รอโหลดข้อมูล...</button>
   </div>
 </div>
 
@@ -49,40 +49,36 @@
   window.onload = async function() {
     try {
       await liff.init({ liffId: MY_LIFF_ID });
-      if (!liff.isLoggedIn()) { 
-        liff.login(); 
-        return; 
-      }
-      
-      document.getElementById('statusText').innerText = "🔄 กำลังโหลดข้อมูลจากฐานข้อมูล...";
-      
-      // เพิ่ม redirect: "follow" เพื่อป้องกันการโดนบล็อกการเปลี่ยนเส้นทางของ Google
-      const response = await fetch(GAS_API_URL, {
-        method: "GET",
-        redirect: "follow",
-        headers: {
-          "Content-Type": "text/plain;charset=utf-8",
-        }
-      });
-      
-      if (!response.ok) throw new Error("ดึงข้อมูลไม่สำเร็จ");
-      
-      serverData = await response.json();
-      
+      if (!liff.isLoggedIn()) { liff.login(); return; }
+      fetchDataWithJSONP(GAS_API_URL);
+    } catch (err) {
+      document.getElementById('statusText').innerText = "❌ เกิดข้อผิดพลาดในการโหลด LIFF";
+    }
+  };
+
+  // --- เทคนิคใหม่: ทะลุกำแพง Redirect ของ Google Workspace ---
+  function fetchDataWithJSONP(url) {
+    const script = document.createElement('script');
+    script.src = url + "?callback=handleServerResponse";
+    document.body.appendChild(script);
+  }
+
+  // --- ฟังก์ชันรับข้อมูลกลับจาก Google ---
+  function handleServerResponse(data) {
+    if(data) {
+      serverData = data;
       document.getElementById('statusText').innerText = "💡 กรุณาติ๊กเลือกหัวข้อที่ต้องการแชร์ลงกลุ่ม LINE:";
       document.getElementById('shareBtn').disabled = false;
       document.getElementById('shareBtn').innerText = "💬 ส่งรายงานเข้าแชท LINE";
-
-    } catch (err) {
-      console.error(err);
-      document.getElementById('statusText').innerHTML = `<span style="color:red;">❌ Error: ${err.message}<br><small>(โปรดตรวจสอบสิทธิ์การ Deploy ใน Google Sheet)</small></span>`;
+    } else {
+      document.getElementById('statusText').innerText = "❌ ไม่พบข้อมูลจากฐานข้อมูล";
     }
-  };
+  }
 
   async function processAndShare() {
     if (!serverData) return;
     const btn = document.getElementById('shareBtn');
-    btn.disabled = true; btn.innerText = "⏳ กำลังประมวลผลระบบ...";
+    btn.disabled = true; btn.innerText = "⏳ กำลังเตรียมการแชร์...";
 
     const fireBubble = generateFireBubbleCode();
     const weirBubble = generateWeirBubbleCode();
@@ -94,7 +90,7 @@
     if (document.getElementById('chkForest').checked) selectedBubbles.push(forestBubble);
 
     if (selectedBubbles.length === 0) {
-      alert("⚠️ กรุณาเลือกเรื่องที่ต้องการรายงานอย่างน้อย 1 รายการครับ");
+      alert("⚠️ กรุณาเลือกรายงานอย่างน้อย 1 รายการครับ");
       btn.disabled = false; btn.innerText = "💬 ส่งรายงานเข้าแชท LINE";
       return;
     }
@@ -113,6 +109,9 @@
     }
   }
 
+  // ==========================================
+  // ส่วนสร้างการ์ด Flex Message คงเดิม
+  // ==========================================
   function generateFireBubbleCode() {
     let hsBox = {};
     if (serverData.totalHS === 0) {
@@ -140,7 +139,7 @@
               { "type": "box", "layout": "vertical", "backgroundColor": pmBg, "borderColor": pmBorder, "borderWidth": "1px", "cornerRadius": "md", "paddingAll": "15px", "contents": [{ "type": "text", "text": "📊 ภาพรวม 17 จังหวัดภาคเหนือ", "size": "xs", "color": pmColor, "weight": "bold" }, { "type": "box", "layout": "horizontal", "margin": "md", "alignItems": "center", "contents": [{ "type": "box", "layout": "vertical", "flex": 1, "contents": [{ "type": "text", "text": "ค่าเฉลี่ย PM2.5", "size": "xs", "color": "#64748b" }, { "type": "text", "text": serverData.avgPM + " µg/m³", "size": "xl", "weight": "bold", "color": pmColor, "margin": "xs" }] }, { "type": "box", "layout": "vertical", "backgroundColor": pmColor, "paddingStart": "10px", "paddingEnd": "10px", "paddingTop": "6px", "paddingBottom": "6px", "cornerRadius": "md", "contents": [{ "type": "text", "text": serverData.pmImpact, "color": "#ffffff", "size": "xs", "weight": "bold", "align": "center" }] }] }]},
               { "type": "box", "layout": "vertical", "contents": [{ "type": "text", "text": "🔥 3 อันดับที่มีจุดความร้อนมากที่สุด", "weight": "bold", "size": "sm", "color": "#0f172a" }, hsBox ]},
               { "type": "box", "layout": "vertical", "contents": [{ "type": "text", "text": "😷 3 อันดับที่มีค่า PM2.5 มากที่สุด", "weight": "bold", "size": "sm", "color": "#0f172a" }, { "type": "box", "layout": "vertical", "margin": "sm", "spacing": "xs", "contents": pmRows }]},
-              { "type": "text", "text": "🕒 ดึงข้อมูลอัตโนมัติ ณ: " + serverData.updateTime, "size": "xs", "color": "#94a3b8", "align": "center", "margin": "sm" }
+              { "type": "text", "text": "🕒 ข้อมูล ณ วันที่: " + serverData.updateTime, "size": "xs", "color": "#94a3b8", "align": "center", "margin": "sm" }
             ]},
           { "type": "box", "layout": "horizontal", "backgroundColor": "#f8fafc", "paddingAll": "15px", "contents": [{ "type": "button", "style": "primary", "color": "#dc2626", "height": "sm", "action": { "type": "uri", "label": "📁 ดูรายละเอียด", "uri": "https://www.gistda.or.th" } }] }
         ]
