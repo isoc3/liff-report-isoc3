@@ -18,7 +18,7 @@
     .checkbox-card { display: flex; align-items: center; padding: 15px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; cursor: pointer; }
     .checkbox-card input { width: 20px; height: 24px; cursor: pointer; margin-right: 15px; }
     .checkbox-label { font-size: 14px; font-weight: bold; color: #1e293b; }
-    .btn-share { width: 100%; background: #06C755; color: white; border: none; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: bold; font-family: 'Sarabun'; cursor: pointer; box-shadow: 0 4px 12px rgba(6,199,85,0.2); }
+    .btn-share { width: 100%; background: #06C755; color: white; border: none; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(6,199,85,0.2); }
     .btn-share:disabled { background: #cbd5e1; color: #94a3b8; cursor: not-allowed; box-shadow: none; }
   </style>
 </head>
@@ -27,23 +27,30 @@
 <div class="container">
   <div class="header">
     <h2>ศนป.กอ.รมน.ภาค 3</h2>
-    <p>ระบบศูนย์รวมการแชร์รายงานสถานการณ์ประจำวัน</p>
+    <p>ศูนย์รวมการแชร์รายงานบูรณาการ (Carousel)</p>
   </div>
   <div class="content">
-    <div class="instruction" id="statusText">⏳ กำลังเชื่อมต่อระบบข้อมูล...</div>
+    <div class="instruction" id="statusText">⏳ กำลังเชื่อมต่อข้อมูล...</div>
     <div class="checkbox-group">
-      <label class="checkbox-card"><input type="checkbox" id="chkFire" checked><span class="checkbox-label">🔥 รายงานไฟป่าและฝุ่นหมอกควัน</span></label>
-      <label class="checkbox-card"><input type="checkbox" id="chkWeir" checked><span class="checkbox-label">💧 รายงานสรุปการสร้าง/ซ่อมแซมฝาย</span></label>
-      <label class="checkbox-card"><input type="checkbox" id="chkForest" checked><span class="checkbox-label">🌳 รายงานผลโครงการปลูกป่าทดแทน</span></label>
+      <label class="checkbox-card"><input type="checkbox" id="chkFire" checked><span class="checkbox-label">🔥 รายงานไฟป่าและฝุ่น</span></label>
+      <label class="checkbox-card"><input type="checkbox" id="chkWeir" checked><span class="checkbox-label">💧 รายงานการสร้างฝาย</span></label>
+      <label class="checkbox-card"><input type="checkbox" id="chkForest" checked><span class="checkbox-label">🌳 รายงานปลูกป่าทดแทน</span></label>
     </div>
-    <button class="btn-share" id="shareBtn" onclick="processAndShare()" disabled>⏳ รอโหลดข้อมูล...</button>
+    <button class="btn-share" id="shareBtn" onclick="processAndShare()" disabled>⏳ รอสักครู่...</button>
   </div>
 </div>
 
 <script>
-  // 🚨 อัปเดตเป็น LIFF ID อันใหม่ของคุณสำหรับ Carousel โดยเฉพาะ
+  // 🚨 1. LIFF ID อันใหม่แยกเฉพาะของขบวน Carousel
   const MY_LIFF_ID = "2010468749-0aq8Z3bf"; 
-  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzyWkYGD715xP1tcJuh5xej-N8RTnWqX9vENsONs3zp1ACIA6K12z8MQDM9sw5TSkvCWQ/exec";
+  
+  // 🚨 2. URL API จาก Google Apps Script (ตัวล่าสุด)
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzr0gcrRMSb6WBBsIusERiH4wPVUY1rMpsn2tCeDGELSn1R754lXwlD5CdhC1tGgTE0cg/exec";
+
+  // ค่าคงที่ลิงก์โลโก้ตามบรีฟ
+  const LOGO_LEFT = "https://lh3.googleusercontent.com/d/1BN7SKJAsPCyBx3cUV_LNDXRcjnP86Th1";
+  const LOGO_RIGHT_FIRE = "https://lh3.googleusercontent.com/d/1vereUg2XeLoYyKQSiamrJpaHNgmrgwj4";
+  const LOGO_RIGHT_WF = "https://lh3.googleusercontent.com/d/1PBPcdEyPAVRUinc_9V5TrDxhMNOPS64K";
 
   let serverData = null;
 
@@ -51,33 +58,35 @@
     try {
       await liff.init({ liffId: MY_LIFF_ID });
       if (!liff.isLoggedIn()) { liff.login(); return; }
-      fetchDataWithJSONP(GAS_API_URL);
+      
+      document.getElementById('statusText').innerText = "🔄 กำลังโหลดข้อมูลล่าสุดจาก Sheets...";
+      
+      // เรียกใช้เทคนิค JSONP เพื่อทะลุกำแพงความปลอดภัยองค์กร
+      const script = document.createElement('script');
+      script.src = GAS_API_URL + "?callback=liffCallback";
+      document.body.appendChild(script);
+
     } catch (err) {
-      document.getElementById('statusText').innerText = "❌ เกิดข้อผิดพลาดในการโหลด LIFF";
+      document.getElementById('statusText').innerText = "❌ เกิดข้อผิดพลาดตอน Init: " + err.message;
     }
   };
 
-  function fetchDataWithJSONP(url) {
-    const script = document.createElement('script');
-    script.src = url + "?callback=handleServerResponse";
-    document.body.appendChild(script);
-  }
-
-  function handleServerResponse(data) {
+  // ฟังก์ชันรับข้อมูลกลับจากฝั่ง Google
+  function liffCallback(data) {
     if(data) {
       serverData = data;
-      document.getElementById('statusText').innerText = "💡 กรุณาติ๊กเลือกหัวข้อที่ต้องการแชร์ลงกลุ่ม LINE:";
+      document.getElementById('statusText').innerText = "💡 กรุณาติ๊กเลือกการ์ดที่ต้องการส่งรวมกัน:";
       document.getElementById('shareBtn').disabled = false;
       document.getElementById('shareBtn').innerText = "💬 ส่งรายงานเข้าแชท LINE";
     } else {
-      document.getElementById('statusText').innerText = "❌ ไม่พบข้อมูลจากฐานข้อมูล";
+      document.getElementById('statusText').innerText = "❌ ไม่พบข้อมูลจากระบบ";
     }
   }
 
   async function processAndShare() {
     if (!serverData) return;
     const btn = document.getElementById('shareBtn');
-    btn.disabled = true; btn.innerText = "⏳ กำลังเตรียมการแชร์...";
+    btn.disabled = true; btn.innerText = "⏳ กำลังสร้างขบวนการ์ด...";
 
     const fireBubble = generateFireBubbleCode();
     const weirBubble = generateWeirBubbleCode();
@@ -89,17 +98,18 @@
     if (document.getElementById('chkForest').checked) selectedBubbles.push(forestBubble);
 
     if (selectedBubbles.length === 0) {
-      alert("⚠️ กรุณาเลือกรายงานอย่างน้อย 1 รายการครับ");
+      alert("⚠️ กรุณาเลือกเรื่องที่ต้องการแชร์อย่างน้อย 1 ใบครับ");
       btn.disabled = false; btn.innerText = "💬 ส่งรายงานเข้าแชท LINE";
       return;
     }
 
+    // รวมร่าง: ถ้ามี 1 ใบส่งเป็น bubble, มากกว่า 1 ใบส่งเป็น Carousel (ขบวนรถไฟ)
     let finalContents = selectedBubbles.length === 1 ? selectedBubbles[0] : { "type": "carousel", "contents": selectedBubbles };
 
     try {
       await liff.shareTargetPicker([{
         "type": "flex",
-        "altText": "📋 รายงานสถานการณ์ ศนป.กอ.รมน.ภาค 3",
+        "altText": "📋 รายงานบูรณาการ ศนป.กอ.รมน.ภาค 3",
         "contents": finalContents
       }]);
       liff.closeWindow();
@@ -109,7 +119,7 @@
   }
 
   // ==========================================
-  // ส่วนสร้างการ์ด Flex Message พร้อมปุ่มแชร์ต่อ
+  // ส่วนสร้างหน้าตาการ์ด (ขนาดตัวอักษรพอดี + โลโก้เป๊ะตามบรีฟ)
   // ==========================================
   function generateFireBubbleCode() {
     let hsBox = {};
@@ -129,12 +139,19 @@
 
     let pmRows = serverData.top3PM.map((r, i) => ({ "type": "box", "layout": "horizontal", "paddingAll": "8px", "backgroundColor": "#f8fafc", "cornerRadius": "sm", "alignItems": "center", "contents": [{ "type": "text", "text": (i+1)+".", "weight": "bold", "size": "sm", "color": pmColor, "flex": 1 }, { "type": "text", "text": r.area, "size": "sm", "color": "#334155", "flex": 7, "wrap": true }, { "type": "text", "text": r.value + " µg", "weight": "bold", "size": "sm", "color": "#0f172a", "flex": 4, "align": "end" }] }));
 
-    const shareUrl = "https://liff.line.me/" + MY_LIFF_ID; 
+    const shareUrl = "https://liff.line.me/" + MY_LIFF_ID;
 
     return {
       "type": "bubble", "size": "mega", "body": {
         "type": "box", "layout": "vertical", "paddingAll": "0px", "contents": [
-          { "type": "box", "layout": "vertical", "contents": [{ "type": "box", "layout": "horizontal", "paddingAll": "15px", "backgroundColor": "#111827", "contents": [{ "type": "box", "layout": "vertical", "width": "40px", "height": "40px", "contents": [{ "type": "image", "url": "https://cdn-icons-png.flaticon.com/512/149/149071.png", "size": "full" }] }, { "type": "box", "layout": "vertical", "flex": 4, "justifyContent": "center", "contents": [{ "type": "text", "text": "ศนป.กอ.รมน.", "weight": "bold", "color": "#ffffff", "align": "center", "size": "lg" }] }, { "type": "box", "layout": "vertical", "width": "40px", "height": "40px" }]}, { "type": "box", "layout": "vertical", "backgroundColor": "#dc2626", "paddingAll": "10px", "contents": [{ "type": "text", "text": "🚨 รายงานไฟป่าและฝุ่น", "color": "#ffffff", "weight": "bold", "align": "center", "size": "md" }] }]},
+          { "type": "box", "layout": "vertical", "contents": [
+            { "type": "box", "layout": "horizontal", "paddingAll": "15px", "backgroundColor": "#111827", "alignItems": "center", "contents": [
+              { "type": "box", "layout": "vertical", "width": "40px", "height": "40px", "contents": [{ "type": "image", "url": LOGO_LEFT, "size": "full" }] },
+              { "type": "box", "layout": "vertical", "flex": 4, "justifyContent": "center", "contents": [{ "type": "text", "text": "ศนป.กอ.รมน.ภาค 3", "weight": "bold", "color": "#ffffff", "align": "center", "size": "md", "wrap": true }] },
+              { "type": "box", "layout": "vertical", "width": "40px", "height": "40px", "backgroundColor": "#ffffff", "cornerRadius": "100px", "paddingAll": "4px", "contents": [{ "type": "image", "url": LOGO_RIGHT_FIRE, "size": "full" }] }
+            ]}, 
+            { "type": "box", "layout": "vertical", "backgroundColor": "#dc2626", "paddingAll": "10px", "contents": [{ "type": "text", "text": "🚨 รายงานสถานการณ์ไฟป่าและฝุ่น", "color": "#ffffff", "weight": "bold", "align": "center", "size": "sm", "wrap": true }] }
+          ]},
           { "type": "box", "layout": "vertical", "paddingAll": "15px", "spacing": "md", "contents": [
               { "type": "box", "layout": "vertical", "backgroundColor": pmBg, "borderColor": pmBorder, "borderWidth": "1px", "cornerRadius": "md", "paddingAll": "10px", "contents": [{ "type": "text", "text": "ภาพรวม PM2.5 ภาคเหนือ", "size": "xs", "color": pmColor, "weight": "bold" }, { "type": "box", "layout": "horizontal", "margin": "sm", "alignItems": "center", "contents": [{ "type": "text", "text": serverData.avgPM + " µg/m³", "size": "lg", "weight": "bold", "color": pmColor, "flex": 2 }, { "type": "box", "layout": "vertical", "backgroundColor": pmColor, "paddingAll": "4px", "cornerRadius": "sm", "flex": 2, "contents": [{ "type": "text", "text": serverData.pmImpact, "color": "#ffffff", "size": "xxs", "weight": "bold", "align": "center" }] }] }]},
               { "type": "box", "layout": "vertical", "contents": [{ "type": "text", "text": "🔥 จุดความร้อน Top 3", "weight": "bold", "size": "xs", "color": "#0f172a" }, hsBox ]},
@@ -154,14 +171,23 @@
     return {
       "type": "bubble", "size": "mega", "body": {
         "type": "box", "layout": "vertical", "paddingAll": "0px", "contents": [
-          { "type": "box", "layout": "vertical", "contents": [{ "type": "box", "layout": "horizontal", "paddingAll": "15px", "backgroundColor": "#111827", "contents": [{ "type": "box", "layout": "vertical", "width": "40px", "height": "40px", "contents": [{ "type": "image", "url": "https://cdn-icons-png.flaticon.com/512/149/149071.png", "size": "full" }] }, { "type": "box", "layout": "vertical", "flex": 4, "justifyContent": "center", "contents": [{ "type": "text", "text": "ศนป.กอ.รมน.", "weight": "bold", "color": "#ffffff", "align": "center", "size": "lg" }] }, { "type": "box", "layout": "vertical", "width": "40px", "height": "40px" }]}, { "type": "box", "layout": "vertical", "backgroundColor": "#0284c7", "paddingAll": "10px", "contents": [{ "type": "text", "text": "💧 รายงานการสร้างฝาย", "color": "#ffffff", "weight": "bold", "align": "center", "size": "md" }] }]},
+          { "type": "box", "layout": "vertical", "contents": [
+            { "type": "box", "layout": "horizontal", "paddingAll": "15px", "backgroundColor": "#111827", "alignItems": "center", "contents": [
+              { "type": "box", "layout": "vertical", "width": "40px", "height": "40px", "contents": [{ "type": "image", "url": LOGO_LEFT, "size": "full" }] },
+              { "type": "box", "layout": "vertical", "flex": 4, "justifyContent": "center", "contents": [{ "type": "text", "text": "ศนป.กอ.รมน.ภาค 3", "weight": "bold", "color": "#ffffff", "align": "center", "size": "md", "wrap": true }] },
+              { "type": "box", "layout": "vertical", "width": "40px", "height": "40px", "backgroundColor": "#ffffff", "cornerRadius": "100px", "paddingAll": "4px", "contents": [{ "type": "image", "url": LOGO_RIGHT_WF, "size": "full" }] }
+            ]}, 
+            { "type": "box", "layout": "vertical", "backgroundColor": "#0284c7", "paddingAll": "10px", "contents": [{ "type": "text", "text": "💧 รายงานสรุปการสร้าง/ซ่อมแซมฝาย", "color": "#ffffff", "weight": "bold", "align": "center", "size": "sm", "wrap": true }] }
+          ]},
           { "type": "box", "layout": "vertical", "paddingAll": "15px", "contents": [
               { "type": "box", "layout": "vertical", "margin": "md", "spacing": "sm", "contents": [
-                  { "type": "box", "layout": "baseline", "spacing": "sm", "contents": [{ "type": "text", "text": "พิกัด:", "color": "#64748b", "size": "sm", "flex": 2 }, { "type": "text", "text": serverData.weir.loc, "wrap": true, "color": "#0f172a", "size": "sm", "flex": 6, "weight": "bold" }] },
-                  { "type": "box", "layout": "baseline", "spacing": "sm", "contents": [{ "type": "text", "text": "ประเภท:", "color": "#64748b", "size": "sm", "flex": 2 }, { "type": "text", "text": serverData.weir.type, "wrap": true, "color": "#0f172a", "size": "sm", "flex": 6, "weight": "bold" }] },
-                  { "type": "box", "layout": "baseline", "spacing": "sm", "contents": [{ "type": "text", "text": "ขนาด:", "color": "#64748b", "size": "sm", "flex": 2 }, { "type": "text", "text": serverData.weir.size, "wrap": true, "color": "#0f172a", "size": "sm", "flex": 6, "weight": "bold" }] },
-                  { "type": "box", "layout": "baseline", "spacing": "sm", "contents": [{ "type": "text", "text": "ประโยชน์:", "color": "#64748b", "size": "sm", "flex": 2 }, { "type": "text", "text": serverData.weir.benefit, "wrap": true, "color": "#0f172a", "size": "sm", "flex": 6, "weight": "bold" }] },
-                  { "type": "box", "layout": "horizontal", "margin": "lg", "spacing": "sm", "contents": [
+                  { "type": "box", "layout": "horizontal", "spacing": "sm", "contents": [{ "type": "text", "text": "หน่วยดำเนินการ:", "color": "#64748b", "size": "xs", "flex": 3, "wrap": true }, { "type": "text", "text": serverData.weir.unit, "wrap": true, "color": "#0f172a", "size": "sm", "flex": 7, "weight": "bold" }] },
+                  { "type": "box", "layout": "horizontal", "spacing": "sm", "contents": [{ "type": "text", "text": "พื้นที่/พิกัด:", "color": "#64748b", "size": "xs", "flex": 3, "wrap": true }, { "type": "text", "text": serverData.weir.loc, "wrap": true, "color": "#0f172a", "size": "sm", "flex": 7, "weight": "bold" }] },
+                  { "type": "box", "layout": "horizontal", "spacing": "sm", "contents": [{ "type": "text", "text": "ประเภทฝาย:", "color": "#64748b", "size": "xs", "flex": 3, "wrap": true }, { "type": "text", "text": serverData.weir.type, "wrap": true, "color": "#0f172a", "size": "sm", "flex": 7, "weight": "bold" }] },
+                  { "type": "box", "layout": "horizontal", "spacing": "sm", "contents": [{ "type": "text", "text": "ขนาดฝาย:", "color": "#64748b", "size": "xs", "flex": 3, "wrap": true }, { "type": "text", "text": serverData.weir.size, "wrap": true, "color": "#0f172a", "size": "sm", "flex": 7, "weight": "bold" }] },
+                  { "type": "box", "layout": "horizontal", "spacing": "sm", "contents": [{ "type": "text", "text": "ประโยชน์:", "color": "#64748b", "size": "xs", "flex": 3, "wrap": true }, { "type": "text", "text": serverData.weir.benefit, "wrap": true, "color": "#0f172a", "size": "sm", "flex": 7, "weight": "bold" }] },
+                  { "type": "text", "text": "🕒 ข้อมูล ณ วันที่ " + serverData.updateTime, "size": "xxs", "color": "#aaaaaa", "margin": "xl", "align": "center" },
+                  { "type": "box", "layout": "horizontal", "margin": "md", "spacing": "sm", "contents": [
                       { "type": "button", "style": "primary", "color": "#0284c7", "height": "sm", "action": { "type": "uri", "label": "ดูรายละเอียด", "uri": "https://www.isoc.go.th/" }, "flex": 1 },
                       { "type": "button", "style": "secondary", "height": "sm", "action": { "type": "uri", "label": "📤 แชร์ต่อ", "uri": shareUrl }, "flex": 1 }
                     ]}
@@ -177,13 +203,22 @@
     return {
       "type": "bubble", "size": "mega", "body": {
         "type": "box", "layout": "vertical", "paddingAll": "0px", "contents": [
-          { "type": "box", "layout": "vertical", "contents": [{ "type": "box", "layout": "horizontal", "paddingAll": "15px", "backgroundColor": "#111827", "contents": [{ "type": "box", "layout": "vertical", "width": "40px", "height": "40px", "contents": [{ "type": "image", "url": "https://cdn-icons-png.flaticon.com/512/149/149071.png", "size": "full" }] }, { "type": "box", "layout": "vertical", "flex": 4, "justifyContent": "center", "contents": [{ "type": "text", "text": "ศนป.กอ.รมน.", "weight": "bold", "color": "#ffffff", "align": "center", "size": "lg" }] }, { "type": "box", "layout": "vertical", "width": "40px", "height": "40px" }]}, { "type": "box", "layout": "vertical", "backgroundColor": "#059669", "paddingAll": "10px", "contents": [{ "type": "text", "text": "🌳 รายงานปลูกป่า", "color": "#ffffff", "weight": "bold", "align": "center", "size": "md" }] }]},
+          { "type": "box", "layout": "vertical", "contents": [
+            { "type": "box", "layout": "horizontal", "paddingAll": "15px", "backgroundColor": "#111827", "alignItems": "center", "contents": [
+              { "type": "box", "layout": "vertical", "width": "40px", "height": "40px", "contents": [{ "type": "image", "url": LOGO_LEFT, "size": "full" }] },
+              { "type": "box", "layout": "vertical", "flex": 4, "justifyContent": "center", "contents": [{ "type": "text", "text": "ศนป.กอ.รมน.ภาค 3", "weight": "bold", "color": "#ffffff", "align": "center", "size": "md", "wrap": true }] },
+              { "type": "box", "layout": "vertical", "width": "40px", "height": "40px", "backgroundColor": "#ffffff", "cornerRadius": "100px", "paddingAll": "4px", "contents": [{ "type": "image", "url": LOGO_RIGHT_WF, "size": "full" }] }
+            ]}, 
+            { "type": "box", "layout": "vertical", "backgroundColor": "#059669", "paddingAll": "10px", "contents": [{ "type": "text", "text": "🌳 รายงานผลโครงการปลูกป่าทดแทน", "color": "#ffffff", "weight": "bold", "align": "center", "size": "sm", "wrap": true }] }
+          ]},
           { "type": "box", "layout": "vertical", "paddingAll": "15px", "contents": [
               { "type": "box", "layout": "vertical", "margin": "md", "spacing": "sm", "contents": [
-                  { "type": "box", "layout": "baseline", "spacing": "sm", "contents": [{ "type": "text", "text": "พิกัด:", "color": "#64748b", "size": "sm", "flex": 3 }, { "type": "text", "text": serverData.forest.loc, "wrap": true, "color": "#0f172a", "size": "sm", "flex": 7, "weight": "bold" }] },
-                  { "type": "box", "layout": "baseline", "spacing": "sm", "contents": [{ "type": "text", "text": "จำนวน:", "color": "#64748b", "size": "sm", "flex": 3 }, { "type": "text", "text": serverData.forest.qty, "wrap": true, "color": "#0f172a", "size": "sm", "flex": 7, "weight": "bold" }] },
-                  { "type": "box", "layout": "baseline", "spacing": "sm", "contents": [{ "type": "text", "text": "ชนิดไม้:", "color": "#64748b", "size": "sm", "flex": 3 }, { "type": "text", "text": serverData.forest.type, "wrap": true, "color": "#0f172a", "size": "sm", "flex": 7, "weight": "bold" }] },
-                  { "type": "box", "layout": "baseline", "spacing": "sm", "contents": [{ "type": "text", "text": "ผู้เข้าร่วม:", "color": "#64748b", "size": "sm", "flex": 3 }, { "type": "text", "text": serverData.forest.people, "wrap": true, "color": "#0f172a", "size": "sm", "flex": 7, "weight": "bold" }] },
+                  { "type": "box", "layout": "horizontal", "spacing": "sm", "contents": [{ "type": "text", "text": "หน่วยดำเนินการ:", "color": "#64748b", "size": "xs", "flex": 3, "wrap": true }, { "type": "text", "text": serverData.forest.unit || "ศปป.4 กอ.รมน.ภาค 3", "wrap": true, "color": "#0f172a", "size": "sm", "flex": 7, "weight": "bold" }] },
+                  { "type": "box", "layout": "horizontal", "spacing": "sm", "contents": [{ "type": "text", "text": "พื้นที่ปลูก:", "color": "#64748b", "size": "xs", "flex": 3, "wrap": true }, { "type": "text", "text": serverData.forest.loc, "wrap": true, "color": "#0f172a", "size": "sm", "flex": 7, "weight": "bold" }] },
+                  { "type": "box", "layout": "horizontal", "spacing": "sm", "contents": [{ "type": "text", "text": "จำนวนต้นไม้:", "color": "#64748b", "size": "xs", "flex": 3, "wrap": true }, { "type": "text", "text": serverData.forest.qty, "wrap": true, "color": "#0f172a", "size": "sm", "flex": 7, "weight": "bold" }] },
+                  { "type": "box", "layout": "horizontal", "spacing": "sm", "contents": [{ "type": "text", "text": "ชนิดพันธุ์ไม้:", "color": "#64748b", "size": "xs", "flex": 3, "wrap": true }, { "type": "text", "text": serverData.forest.type, "wrap": true, "color": "#0f172a", "size": "sm", "flex": 7, "weight": "bold" }] },
+                  { "type": "box", "layout": "horizontal", "spacing": "sm", "contents": [{ "type": "text", "text": "ผู้เข้าร่วม:", "color": "#64748b", "size": "xs", "flex": 3, "wrap": true }, { "type": "text", "text": serverData.forest.people, "wrap": true, "color": "#0f172a", "size": "sm", "flex": 7, "weight": "bold" }] },
+                  { "type": "text", "text": "🕒 ข้อมูล ณ วันที่ " + serverData.updateTime, "size": "xxs", "color": "#aaaaaa", "margin": "xl", "align": "center" },
                   { "type": "box", "layout": "horizontal", "margin": "lg", "spacing": "sm", "contents": [
                       { "type": "button", "style": "primary", "color": "#059669", "height": "sm", "action": { "type": "uri", "label": "ดูรายละเอียด", "uri": "https://www.isoc.go.th/" }, "flex": 1 },
                       { "type": "button", "style": "secondary", "height": "sm", "action": { "type": "uri", "label": "📤 แชร์ต่อ", "uri": shareUrl }, "flex": 1 }
