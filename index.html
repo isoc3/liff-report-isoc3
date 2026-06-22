@@ -41,11 +41,11 @@
 </div>
 
 <script>
-  // 🚨 กำหนดตัวแปร LIFF และ API URL
+  // 🚨 กำหนดตัวแปร LIFF และ API URL ล่าสุดของคุณ
   const MY_LIFF_ID = "2010468749-0aq8Z3bf"; 
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwdkeaxpJXAhKnb_d0qMoVZvDY1c4snIqFqECqjxY7ZEDwsDxDA_TZZpdd7FIM9FPvpXg/exec";
 
-  // 🚨 ลิงก์รูปโลโก้ (บังคับต้องเป็น https:// เท่านั้น)
+  // ลิงก์รูปโลโก้ (แปลงเป็น https:// แล้ว)
   const LOGO_LEFT = "https://lh3.googleusercontent.com/d/1BN7SKJAsPCyBx3cUV_LNDXRcjnP86Th1";
   const LOGO_RIGHT_FIRE = "https://lh3.googleusercontent.com/d/1vereUg2XeLoYyKQSiamrJpaHNgmrgwj4";
   const LOGO_RIGHT_WF = "https://lh3.googleusercontent.com/d/1PBPcdEyPAVRUinc_9V5TrDxhMNOPS64K";
@@ -113,7 +113,6 @@
     } catch (e) {
       btn.disabled = false; 
       btn.innerText = "💬 ส่งรายงานเข้าแชท LINE";
-      // 🚨 จุดดักจับ Error ถ้าแชร์ไม่ผ่าน จะเด้งบอกสาเหตุบนมือถือ
       alert("❌ ไม่สามารถแชร์การ์ดได้\nสาเหตุ: " + e.message);
     }
   }
@@ -182,6 +181,7 @@
                   { "type": "box", "layout": "horizontal", "spacing": "sm", "contents": [{ "type": "text", "text": "พื้นที่/พิกัด:", "color": "#64748b", "size": "xs", "flex": 3, "wrap": true }, { "type": "text", "text": serverData.weir.loc, "wrap": true, "color": "#0f172a", "size": "sm", "flex": 7, "weight": "bold" }] },
                   { "type": "box", "layout": "horizontal", "spacing": "sm", "contents": [{ "type": "text", "text": "ประเภทฝาย:", "color": "#64748b", "size": "xs", "flex": 3, "wrap": true }, { "type": "text", "text": serverData.weir.type, "wrap": true, "color": "#0f172a", "size": "sm", "flex": 7, "weight": "bold" }] },
                   { "type": "box", "layout": "horizontal", "spacing": "sm", "contents": [{ "type": "text", "text": "ขนาดฝาย:", "color": "#64748b", "size": "xs", "flex": 3, "wrap": true }, { "type": "text", "text": serverData.weir.size, "wrap": true, "color": "#0f172a", "size": "sm", "flex": 7, "weight": "bold" }] },
+                  { "type": "box", "layout": "horizontal", "spacing": "sm", "contents": [{ "type": "text", "text": "จำนวน:", "color": "#64748b", "size": "xs", "flex": 3, "wrap": true }, { "type": "text", "text": serverData.weir.qty || "1 ฝาย", "wrap": true, "color": "#0f172a", "size": "sm", "flex": 7, "weight": "bold" }] },
                   { "type": "box", "layout": "horizontal", "spacing": "sm", "contents": [{ "type": "text", "text": "ประโยชน์:", "color": "#64748b", "size": "xs", "flex": 3, "wrap": true }, { "type": "text", "text": serverData.weir.benefit, "wrap": true, "color": "#0f172a", "size": "sm", "flex": 7, "weight": "bold" }] },
                   { "type": "text", "text": "🕒 ข้อมูล ณ วันที่ " + serverData.updateTime, "size": "xxs", "color": "#aaaaaa", "margin": "xl", "align": "center" },
                   { "type": "box", "layout": "horizontal", "margin": "md", "spacing": "sm", "contents": [
@@ -208,8 +208,9 @@
             ]}, 
             { "type": "box", "layout": "vertical", "backgroundColor": "#059669", "paddingAll": "10px", "contents": [{ "type": "text", "text": "🌳 รายงานผลโครงการปลูกป่าทดแทน", "color": "#ffffff", "weight": "bold", "align": "center", "size": "sm", "wrap": true }] }
           ]},
+          { "type": "image", "url": "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?q=80&w=800", "size": "full", "aspectRatio": "20:13", "aspectMode": "cover" },
           { "type": "box", "layout": "vertical", "paddingAll": "15px", "contents": [
-              { "type": "box", "layout": "vertical", "margin": "md", "spacing": "sm", "contents": [
+              { "type": "box", "layout": "vertical", "margin": "sm", "spacing": "sm", "contents": [
                   { "type": "box", "layout": "horizontal", "spacing": "sm", "contents": [{ "type": "text", "text": "หน่วยดำเนินการ:", "color": "#64748b", "size": "xs", "flex": 3, "wrap": true }, { "type": "text", "text": serverData.forest.unit || "ศปป.4 กอ.รมน.ภาค 3", "wrap": true, "color": "#0f172a", "size": "sm", "flex": 7, "weight": "bold" }] },
                   { "type": "box", "layout": "horizontal", "spacing": "sm", "contents": [{ "type": "text", "text": "พื้นที่ปลูก:", "color": "#64748b", "size": "xs", "flex": 3, "wrap": true }, { "type": "text", "text": serverData.forest.loc, "wrap": true, "color": "#0f172a", "size": "sm", "flex": 7, "weight": "bold" }] },
                   { "type": "box", "layout": "horizontal", "spacing": "sm", "contents": [{ "type": "text", "text": "จำนวนต้นไม้:", "color": "#64748b", "size": "xs", "flex": 3, "wrap": true }, { "type": "text", "text": serverData.forest.qty, "wrap": true, "color": "#0f172a", "size": "sm", "flex": 7, "weight": "bold" }] },
