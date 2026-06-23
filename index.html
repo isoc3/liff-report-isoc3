@@ -41,12 +41,14 @@
 </div>
 
 <script>
+  // 🚨 กำหนดตัวแปร LIFF และ API URL
   const MY_LIFF_ID = "2010468749-0aq8Z3bf"; 
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwdkeaxpJXAhKnb_d0qMoVZvDY1c4snIqFqECqjxY7ZEDwsDxDA_TZZpdd7FIM9FPvpXg/exec";
 
-  const LOGO_LEFT = "https://googleusercontent.com/profile/picture/0";
-  const LOGO_RIGHT_FIRE = "https://googleusercontent.com/profile/picture/1";
-  const LOGO_RIGHT_WF = "https://googleusercontent.com/profile/picture/2";
+  // 🚨 ลิงก์รูปโลโก้ของจริง กลับมาแล้วครับ!
+  const LOGO_LEFT = "https://lh3.googleusercontent.com/d/1BN7SKJAsPCyBx3cUV_LNDXRcjnP86Th1";
+  const LOGO_RIGHT_FIRE = "https://lh3.googleusercontent.com/d/1vereUg2XeLoYyKQSiamrJpaHNgmrgwj4";
+  const LOGO_RIGHT_WF = "https://lh3.googleusercontent.com/d/1PBPcdEyPAVRUinc_9V5TrDxhMNOPS64K";
 
   let serverData = null;
 
@@ -146,7 +148,6 @@
             ]}, 
             { "type": "box", "layout": "vertical", "backgroundColor": "#dc2626", "paddingAll": "10px", "contents": [{ "type": "text", "text": "🚨 รายงานสถานการณ์ไฟป่าและฝุ่นหมอกควัน", "color": "#ffffff", "weight": "bold", "align": "center", "size": "sm", "wrap": true }] }
           ]},
-          // 🚨 เพิ่มรูปตรงกลาง สำหรับไฟป่า
           { "type": "image", "url": "https://images.unsplash.com/photo-1590055531615-f16d36ffe8ce?q=80&w=800", "size": "full", "aspectRatio": "20:13", "aspectMode": "cover" },
           { "type": "box", "layout": "vertical", "paddingAll": "15px", "spacing": "md", "contents": [
               { "type": "box", "layout": "vertical", "backgroundColor": pmBg, "borderColor": pmBorder, "borderWidth": "1px", "cornerRadius": "md", "paddingAll": "10px", "contents": [{ "type": "text", "text": "ภาพรวม 17 จังหวัดภาคเหนือ", "size": "xs", "color": pmColor, "weight": "bold" }, { "type": "box", "layout": "horizontal", "margin": "sm", "alignItems": "center", "contents": [{ "type": "text", "text": serverData.avgPM + " µg/m³", "size": "lg", "weight": "bold", "color": pmColor, "flex": 2 }, { "type": "box", "layout": "vertical", "backgroundColor": pmColor, "paddingAll": "4px", "cornerRadius": "sm", "flex": 2, "contents": [{ "type": "text", "text": serverData.pmImpact, "color": "#ffffff", "size": "xxs", "weight": "bold", "align": "center" }] }] }]},
@@ -175,7 +176,6 @@
             ]}, 
             { "type": "box", "layout": "vertical", "backgroundColor": "#0284c7", "paddingAll": "10px", "contents": [{ "type": "text", "text": "💧 รายงานสรุปการสร้าง/ซ่อมแซมฝาย", "color": "#ffffff", "weight": "bold", "align": "center", "size": "sm", "wrap": true }] }
           ]},
-          // 🚨 เพิ่มรูปตรงกลาง สำหรับการสร้างฝาย
           { "type": "image", "url": "https://images.unsplash.com/photo-1469122312224-c5846569feb1?q=80&w=800", "size": "full", "aspectRatio": "20:13", "aspectMode": "cover" },
           { "type": "box", "layout": "vertical", "paddingAll": "15px", "contents": [
               { "type": "box", "layout": "vertical", "margin": "md", "spacing": "sm", "contents": [
