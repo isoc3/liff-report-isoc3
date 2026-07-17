@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ฟอร์มรายงานปลูกป่า</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { darkMode: 'class' }</script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <style>
+    body { font-family: 'Sarabun', sans-serif; transition: background-color 0.3s, color 0.3s; }
+    .progress-bar { transition: width 0.4s ease; }
+    div:where(.swal2-container) div:where(.swal2-popup) { width: 95% !important; max-width: 550px !important; }
+  </style>
+</head>
+<body class="bg-emerald-50 dark:bg-gray-900 p-3 sm:p-6 md:p-8 min-h-screen flex items-center justify-center relative">
+  
+  <a href="home.html" class="fixed top-4 left-4 bg-white dark:bg-gray-800 text-gray-800 dark:text-white p-3 rounded-xl shadow-lg z-50 transition-all hover:scale-105 font-bold text-sm">
+    <i class="fa-solid fa-house"></i> กลับเมนู
+  </a>
+
+  <button onclick="toggleDarkMode()" class="fixed top-4 right-4 bg-white dark:bg-gray-800 text-gray-800 dark:text-white p-3 md:p-4 rounded-full shadow-lg z-50 transition-all hover:scale-110">
+    <i id="themeIcon" class="fa-solid fa-moon text-lg"></i>
+  </button>
+
+  <div class="w-full max-w-4xl bg-white dark:bg-gray-800 rounded-2xl md:rounded-3xl shadow-2xl overflow-hidden transition-colors mt-12">
+    
+    <div class="bg-emerald-700 dark:bg-emerald-900 p-6 md:p-8 text-white text-center">
+      <h1 class="text-2xl md:text-3xl font-bold">🌳 ระบบรายงานโครงการปลูกป่า</h1>
+      <p class="text-emerald-100 mt-2 text-sm md:text-base">17 จังหวัดภาคเหนือ ศนป.กอ.รมน.ภาค 3</p>
+    </div>
+
+    <div id="uploadModal" class="fixed inset-0 bg-black/60 z-[100] hidden flex items-center justify-center p-4">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 md:p-8 w-full max-w-md text-center shadow-2xl">
+        <h3 id="progressTitle" class="text-xl font-bold text-emerald-800 dark:text-emerald-400 mb-4">⏳ กำลังเริ่มนำส่งรายงาน...</h3>
+        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 mb-4">
+          <div id="progressBar" class="bg-emerald-600 h-4 rounded-full progress-bar" style="width: 0%"></div>
+        </div>
+        <p id="progressText" class="text-gray-600 dark:text-gray-300 font-bold">0% (0 จาก 0 ไฟล์)</p>
+      </div>
+    </div>
+
+    <form id="reportForm" class="p-5 sm:p-8 space-y-6 md:space-y-8 dark:text-gray-200">
+      
+      <div class="form-group">
+        <label class="block text-sm md:text-base font-bold mb-2">1. หน่วยงานผู้ดำเนินการ</label>
+        <select id="reporter" name="reporter" required class="w-full border-2 border-gray-100 dark:border-gray-700 dark:bg-gray-900 p-3 rounded-xl focus:border-emerald-500 outline-none transition text-sm md:text-base">
+            <option value="">⏳ กำลังโหลดข้อมูล...</option>
+        </select>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+        <div>
+          <label class="block text-sm md:text-base font-bold mb-2">2. วันที่จัดกิจกรรม</label>
+          <input type="date" id="activityDate" name="activityDate" required class="w-full border-2 border-gray-100 dark:border-gray-700 dark:bg-gray-900 p-3 rounded-xl focus:border-emerald-500 outline-none transition text-sm md:text-base">
+        </div>
+        <div>
+          <label class="block text-sm md:text-base font-bold mb-2">3. เวลาที่ดำเนินกิจกรรม</label>
+          <input type="text" id="activityTime" name="activityTime" placeholder="ระบุเวลา..." required class="w-full border-2 border-gray-100 dark:border-gray-700 dark:bg-gray-900 p-3 rounded-xl focus:border-emerald-500 outline-none transition bg-white dark:bg-gray-900 text-sm md:text-base">
+        </div>
+      </div>
+
+      <div class="bg-emerald-50 dark:bg-emerald-900/20 p-4 sm:p-6 rounded-2xl border border-emerald-100 dark:border-emerald-800 space-y-4">
+        <h3 class="font-bold text-emerald-800 dark:text-emerald-400 flex items-center gap-2"><i class="fa-solid fa-location-dot"></i> ข้อมูลพื้นที่ดำเนินการ</h3>
+        
+        <div class="flex flex-col sm:flex-row gap-3">
+          <input type="text" id="gps" name="gps" placeholder="Latitude, Longitude" required readonly class="w-full sm:flex-1 border-2 border-white dark:border-gray-700 p-3 rounded-xl bg-white/50 dark:bg-gray-800 text-sm md:text-base">
+          <button type="button" onclick="getLocation()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-bold shadow-md transition flex items-center justify-center gap-2 whitespace-nowrap"><i class="fa-solid fa-crosshairs"></i> ดึงพิกัด GPS</button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 text-sm md:text-base">
+          <div><label class="text-emerald-700 dark:text-emerald-400 font-bold mb-1 block">จังหวัด</label><select id="province" name="province" required class="w-full p-2.5 rounded-lg dark:bg-gray-800 border shadow-sm"><option value="">⏳ โหลด...</option></select></div>
+          <div><label class="text-emerald-700 dark:text-emerald-400 font-bold mb-1 block">อำเภอ</label><select id="amphure" name="amphure" required class="w-full p-2.5 rounded-lg dark:bg-gray-800 border shadow-sm"></select></div>
+          <div><label class="text-emerald-700 dark:text-emerald-400 font-bold mb-1 block">ตำบล</label><select id="tambon" name="tambon" required class="w-full p-2.5 rounded-lg dark:bg-gray-800 border shadow-sm"></select></div>
+        </div>
+
+        <div class="mt-4 pt-4 border-t border-emerald-200 dark:border-emerald-700">
+          <label class="block text-emerald-700 dark:text-emerald-400 font-bold mb-2 text-sm md:text-base">ลักษณะพื้นที่ปลูก</label>
+          <select name="areaType" required class="w-full border-2 border-white dark:border-gray-700 p-3 rounded-xl bg-white/80 dark:bg-gray-800 text-sm md:text-base focus:border-emerald-500 outline-none transition">
+            <option value="">-- ระบุลักษณะพื้นที่ --</option>
+            <option value="ป่าสงวนแห่งชาติ / ป่าอนุรักษ์">ป่าสงวนแห่งชาติ / ป่าอนุรักษ์</option>
+            <option value="ป่าชุมชน">ป่าชุมชน</option>
+            <option value="พื้นที่สาธารณะประโยชน์ / แหล่งน้ำ">พื้นที่สาธารณะประโยชน์ / แหล่งน้ำ</option>
+            <option value="พื้นที่หน่วยงานราชการ / โรงเรียน / วัด">พื้นที่หน่วยงานราชการ / โรงเรียน / วัด</option>
+            <option value="พื้นที่ของเกษตรกร / เอกชน">พื้นที่ของเกษตรกร / เอกชน</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+        <div>
+          <label class="block text-sm md:text-base font-bold mb-2">ขนาดพื้นที่ปลูก (ไร่-งาน)(ถ้าไม่มีใส่ 0)</label>
+          <div class="flex flex-row gap-2">
+            <input type="number" name="areaRai" placeholder="ไร่" class="w-1/2 border-2 border-gray-100 dark:border-gray-700 dark:bg-gray-900 p-3 rounded-xl text-center text-sm md:text-base">
+            <input type="number" name="areaNgan" placeholder="งาน" class="w-1/2 border-2 border-gray-100 dark:border-gray-700 dark:bg-gray-900 p-3 rounded-xl text-center text-sm md:text-base">
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm md:text-base font-bold mb-2">จำนวนกล้าไม้รวม (ต้น)</label>
+          <input type="number" name="treeCount" required class="w-full border-2 border-gray-100 dark:border-gray-700 dark:bg-gray-900 p-3 rounded-xl text-sm md:text-base" placeholder="0">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 border-t dark:border-gray-700 pt-4">
+        <div>
+          <label class="block text-sm md:text-base font-bold mb-2 text-emerald-700 dark:text-emerald-400">จำนวนผู้เข้าร่วมกิจกรรม (คน)</label>
+          <input type="number" name="participants" required min="0" class="w-full border-2 border-gray-100 dark:border-gray-700 dark:bg-gray-900 p-3 rounded-xl text-sm md:text-base" placeholder="0">
+        </div>
+        <div>
+          <label class="block text-sm md:text-base font-bold mb-2 text-emerald-700 dark:text-emerald-400">ชนิดไม้ที่ปลูก (ถ้ามี)</label>
+          <input type="text" name="treeSpecies" class="w-full border-2 border-gray-100 dark:border-gray-700 dark:bg-gray-900 p-3 rounded-xl text-sm md:text-base" placeholder="เช่น สัก, พะยูง, ยางนา">
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm md:text-base font-bold mb-2">แนบไฟล์รูป/วิดีโอ (สูงสุด 20 ไฟล์)</label>
+          <input type="file" id="mediaFiles" accept="image/*,video/*" multiple class="w-full border-2 border-dashed border-emerald-200 dark:border-emerald-800 p-4 md:p-6 rounded-2xl bg-emerald-50/30 dark:bg-emerald-900/10 text-center text-sm">
+        </div>
+        <div>
+          <label class="block text-sm md:text-base font-bold mb-2">รายละเอียดเพิ่มเติม</label>
+          <textarea name="additionalInfo" class="w-full border-2 border-gray-100 dark:border-gray-700 dark:bg-gray-900 p-3 rounded-xl h-24 text-sm md:text-base"></textarea>
+        </div>
+      </div>
+
+      <button type="submit" class="w-full bg-emerald-700 text-white font-bold py-4 md:py-5 rounded-2xl shadow-xl hover:bg-emerald-800 transition text-lg md:text-xl tracking-wide">
+        📤 ส่งรายงานโครงการปลูกป่า
+      </button>
+    </form>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script>
+    // 🚨 ใส่ API URL ของคุณตรงนี้ครับ
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbz85i6L2Q0l25nb4fxQ4zBfqz9kBL7OWMSaX8RwlFV_V8DIqfKyMIRsNi1BE6SeV_SSxA/exec"; 
+
+    function toggleDarkMode() {
+      const html = document.documentElement; const icon = document.getElementById('themeIcon');
+      html.classList.toggle('dark');
+      if(html.classList.contains('dark')) { icon.classList.replace('fa-moon', 'fa-sun'); } 
+      else { icon.classList.replace('fa-sun', 'fa-moon'); }
+    }
+
+    let locationData = [];
+    document.addEventListener('DOMContentLoaded', async () => {
+      document.getElementById('activityDate').valueAsDate = new Date();
+      flatpickr("#activityTime", { enableTime: true, noCalendar: true, dateFormat: "H:i", time_24hr: true, defaultDate: new Date() });
+
+      try {
+        const [unitsRes, locRes] = await Promise.all([ fetch(GAS_URL + "?action=get_units"), fetch(GAS_URL + "?action=get_location") ]);
+        const units = await unitsRes.json(); locationData = await locRes.json();
+
+        const sel = document.getElementById("reporter");
+        sel.innerHTML = '<option value="">-- เลือกหน่วยงาน --</option>';
+        units.forEach(u => sel.add(new Option(u, u)));
+        initLocation();
+      } catch (err) { Swal.fire('Error', 'โหลดข้อมูลล้มเหลว: ' + err.message, 'error'); }
+    });
+
+    function initLocation() {
+      const p = document.getElementById('province'), a = document.getElementById('amphure'), t = document.getElementById('tambon');
+      const provs = [...new Set(locationData.map(r => r[0]))].sort();
+      p.innerHTML = '<option value="">--เลือกจังหวัด--</option>' + provs.map(x => `<option value="${x}">${x}</option>`).join('');
+      p.onchange = () => {
+        const filtered = [...new Set(locationData.filter(r => r[0] === p.value).map(r => r[1]))].sort();
+        a.innerHTML = '<option value="">--เลือกอำเภอ--</option>' + filtered.map(x => `<option value="${x}">${x}</option>`).join('');
+        t.innerHTML = '<option value="">--เลือกตำบล--</option>';
+      };
+      a.onchange = () => {
+        const filtered = locationData.filter(r => r[0] === p.value && r[1] === a.value).map(r => r[2]).sort();
+        t.innerHTML = '<option value="">--เลือกตำบล--</option>' + filtered.map(x => `<option value="${x}">${x}</option>`).join('');
+      };
+    }
+
+    function getLocation() {
+      const gps = document.getElementById('gps');
+      gps.value = "⏳ กำลังดึงพิกัด...";
+      navigator.geolocation.getCurrentPosition(pos => { gps.value = pos.coords.latitude + ", " + pos.coords.longitude; }, 
+      () => { Swal.fire('Error', 'ไม่สามารถเข้าถึง GPS ได้', 'error'); gps.value = ""; }, {enableHighAccuracy: true});
+    }
+
+    function copyToClipboard(textId) {
+      const textToCopy = document.getElementById(textId).innerText;
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        const btn = document.getElementById('btnCopyText');
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> คัดลอกสำเร็จ!'; btn.classList.replace('bg-blue-600', 'bg-gray-600');
+        setTimeout(() => { btn.innerHTML = '<i class="fa-solid fa-copy"></i> คัดลอกสรุปรายงาน'; btn.classList.replace('bg-gray-600', 'bg-blue-600'); }, 2000);
+      });
+    }
+
+    document.getElementById('reportForm').onsubmit = function(e) {
+      e.preventDefault();
+      const files = document.getElementById('mediaFiles').files;
+      if (files.length > 20) return Swal.fire('แจ้งเตือน', 'แนบไฟล์เกิน 20 ไฟล์ครับ', 'warning');
+
+      const fd = new FormData(this);
+      const payload = {}; fd.forEach((v, k) => payload[k] = v);
+
+      const actDateObj = new Date(payload.activityDate); const dThai = actDateObj.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+      const tThai = payload.activityTime; payload.activityDate = payload.activityDate + " " + tThai;
+
+      const narrativeHTML = `
+        <div class="space-y-3">
+          <div id="summaryTextForest" class="text-left leading-relaxed text-sm p-4 bg-emerald-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-xl border border-emerald-200 dark:border-gray-600 select-all">
+            "วันที่ <b>${dThai}</b> เวลา <b>${tThai} น.</b><br>หน่วย <b>${payload.reporter}</b> ได้ทำการจัดกิจกรรมโครงการปลูกป่า โดยปลูกกล้าไม้จำนวน <b>${payload.treeCount}</b> ต้น ในพื้นที่ <b>ตำบล${payload.tambon} อำเภอ${payload.amphure} จังหวัด${payload.province}</b> และมีผู้เข้าร่วมกิจกรรมจำนวน <b>${payload.participants}</b> คน รายละเอียดตามสิ่งที่แนบมาด้วย(จำนวน <b>${files.length}</b> ไฟล์)"
+          </div>
+          <button type="button" id="btnCopyText" onclick="copyToClipboard('summaryTextForest')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-xl shadow transition flex items-center justify-center gap-2 text-sm">
+            <i class="fa-solid fa-copy"></i> คัดลอกสรุปรายงาน
+          </button>
+        </div>
+      `;
+
+      Swal.fire({
+        title: 'ตรวจสอบสถิติรายงาน', html: narrativeHTML, icon: 'info',
+        background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff', color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#545454',
+        showCancelButton: true, confirmButtonText: '📤 ยืนยันส่งข้อมูล', cancelButtonText: '❌ แก้ไข'
+      }).then((result) => { if (result.isConfirmed) startUploadProcess(payload, files); });
+    };
+
+    async function startUploadProcess(payload, files) {
+      const modal = document.getElementById('uploadModal'), bar = document.getElementById('progressBar'), txt = document.getElementById('progressText'), title = document.getElementById('progressTitle');
+      modal.classList.remove('hidden');
+      
+      try {
+        const res = await fetch(GAS_URL, {
+          method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'submit_forest', data: payload })
+        }).then(r => r.json());
+
+        if (res.status === 'success') {
+          const folderId = res.folderId; const total = files.length;
+          if (total === 0) { finishSubmission(); return; }
+          title.innerText = "🎬 กำลังอัปโหลดไฟล์สื่อ...";
+          
+          for (let i = 0; i < total; i++) {
+            const file = files[i]; const base64 = await toBase64(file);
+            await fetch(GAS_URL, {
+              method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+              body: JSON.stringify({ action: 'upload_file', data: { folderId: folderId, fileObj: {data: base64, type: file.type, name: file.name}, index: i, prefix: 'FOREST' } })
+            });
+            const pct = Math.round(((i + 1) / total) * 100);
+            bar.style.width = pct + '%'; txt.innerText = `${pct}% (${i + 1} จาก ${total} ไฟล์)`;
+          }
+          finishSubmission();
+        } else { Swal.fire('Error', res.message, 'error'); modal.classList.add('hidden'); }
+      } catch (err) { Swal.fire('Error', err.toString(), 'error'); modal.classList.add('hidden'); }
+    }
+
+    const toBase64 = file => new Promise((res, rej) => { const r = new FileReader(); r.readAsDataURL(file); r.onload = () => res(r.result); r.onerror = e => rej(e); });
+    function finishSubmission() {
+      Swal.fire({ title: 'สำเร็จ!', text: 'รายงานโครงการปลูกป่าถูกส่งเรียบร้อยแล้ว', icon: 'success' }).then(() => location.reload());
+    }
+  </script>
+</body>
+</html>
