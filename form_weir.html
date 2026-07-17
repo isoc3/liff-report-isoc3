@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ฟอร์มรายงานข้อมูลฝาย</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { darkMode: 'class' }</script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <style>
+    body { font-family: 'Sarabun', sans-serif; transition: background-color 0.3s, color 0.3s; }
+    .progress-bar { transition: width 0.4s ease; }
+    div:where(.swal2-container) div:where(.swal2-popup) { width: 95% !important; max-width: 550px !important; }
+  </style>
+</head>
+<body class="bg-orange-50 dark:bg-gray-900 p-4 md:p-8 min-h-screen flex items-center justify-center relative">
+  
+  <a href="home.html" class="fixed top-4 left-4 bg-white dark:bg-gray-800 text-gray-800 dark:text-white p-3 rounded-xl shadow-lg z-50 transition-all hover:scale-105 font-bold text-sm">
+    <i class="fa-solid fa-house"></i> กลับเมนู
+  </a>
+
+  <button onclick="toggleDarkMode()" class="fixed top-4 right-4 bg-white dark:bg-gray-800 text-gray-800 dark:text-white p-3 md:p-4 rounded-full shadow-lg z-50 transition-all hover:scale-110">
+    <i id="themeIcon" class="fa-solid fa-moon text-lg"></i>
+  </button>
+
+  <div class="w-full max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden border-t-8 border-orange-500 dark:border-orange-700 mt-12">
+    
+    <div class="p-6 text-center bg-white dark:bg-gray-800 border-b dark:border-gray-700">
+      <h2 class="text-2xl md:text-3xl font-bold text-orange-700 dark:text-orange-400">📝 ฟอร์มรายงานข้อมูลฝาย</h2>
+      <p class="text-gray-500 dark:text-gray-400 text-sm md:text-base mt-1">ศนป.กอ.รมน.ภาค 3</p>
+    </div>
+
+    <div id="uploadModal" class="fixed inset-0 bg-black/70 z-[100] hidden flex items-center justify-center p-4">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 md:p-8 w-full max-w-md text-center shadow-2xl">
+        <h3 id="progressTitle" class="text-xl font-bold text-orange-800 dark:text-orange-400 mb-4">⏳ กำลังบันทึกข้อมูล...</h3>
+        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 mb-4">
+          <div id="progressBar" class="bg-orange-500 h-4 rounded-full progress-bar" style="width: 0%"></div>
+        </div>
+        <p id="progressText" class="text-gray-600 dark:text-gray-300 font-bold">0% (0/0 ไฟล์)</p>
+      </div>
+    </div>
+
+    <form id="weirForm" class="p-5 sm:p-8 space-y-6 md:space-y-8 dark:text-gray-200">
+      <div class="form-group">
+        <label class="block text-sm md:text-base font-bold mb-2">1. ชื่อหน่วยงาน</label>
+        <select id="unitName" required class="w-full border-2 border-gray-100 dark:border-gray-700 dark:bg-gray-900 p-3 rounded-xl focus:border-orange-500 outline-none text-sm md:text-base">
+           <option value="">⏳ กำลังโหลดข้อมูล...</option>
+        </select>
+      </div>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+        <div class="form-group">
+          <label class="block text-sm md:text-base font-bold mb-2">2. วันที่ดำเนินกิจกรรม</label>
+          <input type="date" id="activityDate" required class="w-full border-2 border-gray-100 dark:border-gray-700 dark:bg-gray-900 p-3 rounded-xl text-sm md:text-base">
+        </div>
+        <div class="form-group">
+          <label class="block text-sm md:text-base font-bold mb-2">3. เวลาที่ดำเนินกิจกรรม</label>
+          <input type="text" id="activityTime" placeholder="ระบุเวลา..." required class="w-full border-2 border-gray-100 dark:border-gray-700 dark:bg-gray-900 p-3 rounded-xl bg-white dark:bg-gray-900 text-sm md:text-base">
+        </div>
+      </div>
+
+      <div class="bg-orange-50 dark:bg-orange-900/20 p-4 sm:p-6 rounded-2xl border border-orange-100 dark:border-orange-800">
+        <label class="block text-sm md:text-base font-bold mb-3 text-orange-800 dark:text-orange-400">4. ผลการดำเนินงาน (ฝาย)</label>
+        <div class="grid grid-cols-2 gap-4">
+          <div><label class="text-xs md:text-sm font-semibold mb-1 block text-center">สร้างใหม่(ถ้าไม่มีใส่ 0)</label><input type="number" id="createCount" value="0" min="0" class="w-full p-3 rounded-xl dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm text-center text-lg md:text-xl font-bold text-orange-600 dark:text-orange-400"></div>
+          <div><label class="text-xs md:text-sm font-semibold mb-1 block text-center">ซ่อมแซม(ถ้าไม่มีใส่ 0)</label><input type="number" id="repairCount" value="0" min="0" class="w-full p-3 rounded-xl dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm text-center text-lg md:text-xl font-bold text-orange-600 dark:text-orange-400"></div>
+        </div>
+      </div>
+
+      <div class="bg-gray-50 dark:bg-gray-700/30 p-4 sm:p-6 rounded-2xl border dark:border-gray-600">
+        <label class="block text-sm md:text-base font-bold mb-3 text-gray-700 dark:text-gray-300">5. พื้นที่ดำเนินการ</label>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 text-sm md:text-base">
+          <div><label class="text-xs font-semibold block mb-1">จังหวัด</label><select id="province" required class="w-full p-2.5 rounded-lg dark:bg-gray-800 border shadow-sm"><option value="">⏳ โหลด...</option></select></div>
+          <div><label class="text-xs font-semibold block mb-1">อำเภอ</label><select id="district" required class="w-full p-2.5 rounded-lg dark:bg-gray-800 border shadow-sm"></select></div>
+          <div><label class="text-xs font-semibold block mb-1">ตำบล</label><select id="subdistrict" required class="w-full p-2.5 rounded-lg dark:bg-gray-800 border shadow-sm"></select></div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm md:text-base font-bold mb-2">6. พิกัด (GPS)</label>
+          <div class="flex flex-col gap-2">
+            <button type="button" onclick="getLocation()" class="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-xl font-bold transition flex items-center justify-center gap-2"><i class="fa-solid fa-location-crosshairs"></i> ดึงพิกัดปัจจุบัน</button>
+            <div class="flex flex-row gap-2">
+              <input type="text" id="lat" placeholder="Latitude" class="w-1/2 p-3 border dark:border-gray-700 dark:bg-gray-900 rounded-xl text-xs md:text-sm text-center">
+              <input type="text" id="lng" placeholder="Longitude" class="w-1/2 p-3 border dark:border-gray-700 dark:bg-gray-900 rounded-xl text-xs md:text-sm text-center">
+            </div>
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm md:text-base font-bold mb-2">7. ขนาดเฉลี่ย (เมตร)</label>
+          <div class="grid grid-cols-3 gap-2">
+            <div><label class="text-xs text-center block mb-1">กว้าง</label><input type="number" id="width" placeholder="0.0" step="0.1" class="w-full p-3 border dark:border-gray-700 dark:bg-gray-900 rounded-xl text-sm text-center"></div>
+            <div><label class="text-xs text-center block mb-1">ยาว</label><input type="number" id="length" placeholder="0.0" step="0.1" class="w-full p-3 border dark:border-gray-700 dark:bg-gray-900 rounded-xl text-sm text-center"></div>
+            <div><label class="text-xs text-center block mb-1">สูง</label><input type="number" id="height" placeholder="0.0" step="0.1" class="w-full p-3 border dark:border-gray-700 dark:bg-gray-900 rounded-xl text-sm text-center"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div class="form-group">
+          <label class="block text-sm md:text-base font-bold mb-2">8. รายละเอียด/หมายเหตุ</label>
+          <textarea id="reportDetails" class="w-full border-2 border-gray-100 dark:border-gray-700 dark:bg-gray-900 p-3 rounded-xl h-24 text-sm md:text-base" placeholder="พิมพ์รายละเอียดเพิ่มเติม..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="block text-sm md:text-base font-bold mb-2 text-red-600 dark:text-red-400">9. แนบไฟล์ (รูป/วิดีโอ สูงสุด 20)</label>
+          <input type="file" id="mediaFiles" accept="image/*,video/*" multiple class="w-full border-2 border-dashed border-gray-200 dark:border-gray-700 dark:bg-gray-900 p-4 md:p-6 rounded-xl text-sm text-center">
+        </div>
+      </div>
+
+      <button type="submit" class="w-full bg-orange-600 text-white font-bold py-4 md:py-5 rounded-2xl shadow-xl hover:bg-orange-700 transition text-lg md:text-xl tracking-wide">
+        📤 ส่งรายงานข้อมูลฝาย
+      </button>
+    </form>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script>
+    // 🚨 ใส่ API URL ของคุณตรงนี้ครับ
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbz85i6L2Q0l25nb4fxQ4zBfqz9kBL7OWMSaX8RwlFV_V8DIqfKyMIRsNi1BE6SeV_SSxA/exec"; 
+
+    function toggleDarkMode() {
+      const html = document.documentElement; const icon = document.getElementById('themeIcon');
+      html.classList.toggle('dark');
+      if(html.classList.contains('dark')) { icon.classList.replace('fa-moon', 'fa-sun'); } 
+      else { icon.classList.replace('fa-sun', 'fa-moon'); }
+    }
+
+    let locationData = [];
+    document.addEventListener('DOMContentLoaded', async () => {
+      document.getElementById('activityDate').valueAsDate = new Date();
+      flatpickr("#activityTime", { enableTime: true, noCalendar: true, dateFormat: "H:i", time_24hr: true, defaultDate: new Date() });
+
+      try {
+        // ดึงชื่อหน่วยงานและพื้นที่ผ่าน API
+        const [unitsRes, locRes] = await Promise.all([ fetch(GAS_URL + "?action=get_units"), fetch(GAS_URL + "?action=get_location") ]);
+        const units = await unitsRes.json(); locationData = await locRes.json();
+
+        const sel = document.getElementById("unitName");
+        sel.innerHTML = '<option value="">-- เลือกหน่วยงาน --</option>';
+        units.forEach(u => sel.add(new Option(u, u)));
+        initLocation();
+      } catch (err) { Swal.fire('Error', 'โหลดข้อมูลล้มเหลว: ' + err.message, 'error'); }
+    });
+
+    function initLocation() {
+      const p = document.getElementById('province'), a = document.getElementById('district'), t = document.getElementById('subdistrict');
+      const provs = [...new Set(locationData.map(r => r[0]))].sort();
+      p.innerHTML = '<option value="">--เลือกจังหวัด--</option>' + provs.map(x => `<option value="${x}">${x}</option>`).join('');
+      p.onchange = () => {
+        const filtered = [...new Set(locationData.filter(r => r[0] === p.value).map(r => r[1]))].sort();
+        a.innerHTML = '<option value="">--เลือกอำเภอ--</option>' + filtered.map(x => `<option value="${x}">${x}</option>`).join('');
+        t.innerHTML = '<option value="">--เลือกตำบล--</option>';
+      };
+      a.onchange = () => {
+        const filtered = locationData.filter(r => r[0] === p.value && r[1] === a.value).map(r => r[2]).sort();
+        t.innerHTML = '<option value="">--เลือกตำบล--</option>' + filtered.map(x => `<option value="${x}">${x}</option>`).join('');
+      };
+    }
+
+    function getLocation() {
+      const lat = document.getElementById('lat'), lng = document.getElementById('lng');
+      lat.value = "⏳..."; lng.value = "⏳...";
+      navigator.geolocation.getCurrentPosition(pos => { lat.value = pos.coords.latitude; lng.value = pos.coords.longitude; }, 
+      () => { Swal.fire('Error', 'ไม่สามารถเข้าถึง GPS ได้', 'error'); lat.value=""; lng.value=""; }, {enableHighAccuracy:true});
+    }
+
+    function copyToClipboard(textId) {
+      const textToCopy = document.getElementById(textId).innerText;
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        const btn = document.getElementById('btnCopyTextWeir');
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> คัดลอกสำเร็จ!'; btn.classList.replace('bg-blue-600', 'bg-gray-600');
+        setTimeout(() => { btn.innerHTML = '<i class="fa-solid fa-copy"></i> คัดลอกสรุปรายงาน'; btn.classList.replace('bg-gray-600', 'bg-blue-600'); }, 2000);
+      });
+    }
+
+    document.getElementById('weirForm').onsubmit = function(e) {
+      e.preventDefault();
+      const files = document.getElementById('mediaFiles').files;
+      if (files.length > 20) return Swal.fire('แจ้งเตือน', 'เลือกไฟล์เกิน 20 ไฟล์ครับ', 'warning');
+
+      const payload = {
+        unitName: document.getElementById('unitName').value, activityDate: document.getElementById('activityDate').value,
+        activityTime: document.getElementById('activityTime').value, createCount: document.getElementById('createCount').value,
+        repairCount: document.getElementById('repairCount').value, province: document.getElementById('province').value,
+        district: document.getElementById('district').value, subdistrict: document.getElementById('subdistrict').value,
+        width: document.getElementById('width').value, length: document.getElementById('length').value,
+        height: document.getElementById('height').value, lat: document.getElementById('lat').value,
+        lng: document.getElementById('lng').value, reportDetails: document.getElementById('reportDetails').value
+      };
+
+      if (!payload.province || !payload.district || !payload.subdistrict) return Swal.fire('แจ้งเตือน', 'กรุณาระบุข้อมูล จังหวัด อำเภอ และตำบล ให้ครบถ้วนครับ', 'warning');
+
+      const actDateObj = new Date(payload.activityDate); const dThai = actDateObj.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+      const tThai = payload.activityTime; payload.activityDate = payload.activityDate + " " + tThai;
+
+      const narrativeHTML = `
+        <div class="space-y-3">
+          <div id="summaryTextWeir" class="text-left leading-relaxed text-sm p-4 bg-orange-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-xl border border-orange-200 dark:border-gray-600 select-all">
+            "วันที่ <b>${dThai}</b> เวลา <b>${tThai} น.</b><br>หน่วย <b>${payload.unitName}</b> ได้ทำการสร้างฝายจำนวน <b>${payload.createCount}</b> ฝาย และซ่อมแซมจำนวน <b>${payload.repairCount}</b> ฝาย ในพื้นที่ <b>ตำบล${payload.subdistrict} อำเภอ${payload.district} จังหวัด${payload.province}</b> รายละเอียดตามสิ่งที่แนบมาด้วย(จำนวน <b>${files.length}</b> ไฟล์)"
+          </div>
+          <button type="button" id="btnCopyTextWeir" onclick="copyToClipboard('summaryTextWeir')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-xl shadow transition flex items-center justify-center gap-2 text-sm">
+            <i class="fa-solid fa-copy"></i> คัดลอกสรุปรายงาน
+          </button>
+        </div>
+      `;
+
+      Swal.fire({
+        title: 'ตรวจสอบสถิติรายงานฝาย', html: narrativeHTML, icon: 'info',
+        background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff', color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#545454',
+        showCancelButton: true, confirmButtonText: '📤 ยืนยันข้อมูล', cancelButtonText: '❌ แก้ไข'
+      }).then((result) => { if (result.isConfirmed) uploadProcess(payload, files); });
+    };
+
+    async function uploadProcess(payload, files) {
+      const modal = document.getElementById('uploadModal'), bar = document.getElementById('progressBar'), txt = document.getElementById('progressText');
+      modal.classList.remove('hidden');
+
+      try {
+        // ยิงข้อมูลไปให้ GAS บันทึกลง Sheet
+        const res = await fetch(GAS_URL, {
+          method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'submit_weir', data: payload })
+        }).then(r => r.json());
+
+        if (res.status === 'success') {
+          for (let i = 0; i < files.length; i++) {
+            const b64 = await toBase64(files[i]);
+            await fetch(GAS_URL, {
+              method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+              body: JSON.stringify({ action: 'upload_file', data: { folderId: res.folderId, fileObj: {data: b64, type: files[i].type, name: files[i].name}, index: i, prefix: 'WEIR' } })
+            });
+            const pct = Math.round(((i + 1) / files.length) * 100);
+            bar.style.width = pct + '%'; txt.innerText = `${pct}% (${i + 1}/${files.length})`;
+          }
+          Swal.fire({ title: 'สำเร็จ!', text: 'บันทึกข้อมูลฝายเรียบร้อย', icon: 'success' }).then(() => location.reload());
+        } else {
+          Swal.fire('Error', res.message, 'error'); modal.classList.add('hidden');
+        }
+      } catch (err) { Swal.fire('Error', err.toString(), 'error'); modal.classList.add('hidden'); }
+    }
+
+    const toBase64 = file => new Promise((res) => { const r = new FileReader(); r.readAsDataURL(file); r.onload = () => res(r.result); });
+  </script>
+</body>
+</html>
