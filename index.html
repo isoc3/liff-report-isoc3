@@ -2,116 +2,456 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ระบบแชร์รายงาน ศนป.กอ.รมน.ภาค 3</title>
+  <base target="_top">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
-  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <style>
-    body { font-family: 'Sarabun', sans-serif; background-color: #f1f5f9; }
-    .check-card { transition: all 0.2s; }
-    .check-card:has(input:checked) { border-color: #3b82f6; background-color: #eff6ff; }
-    .check-card-uni:has(input:checked) { border-color: #f59e0b; background-color: #fffbeb; }
+  <style> 
+    body { font-family: 'Sarabun', sans-serif; background-color: #f1f5f9; } 
+    .hide-scroll::-webkit-scrollbar { display: none; }
+    .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
+<body class="p-4 md:p-8 flex justify-center">
 
-  <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
-    <div class="bg-slate-900 pt-8 pb-6 px-6 text-center text-white border-b-4 border-blue-500">
-      <h1 class="text-2xl font-bold">ศนป.กอ.รมน.ภาค 3</h1>
-      <p class="text-slate-300 text-sm mt-1">ศูนย์รวมการแชร์รายงานบูรณาการ (Carousel)</p>
+  <div class="w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+    <div class="bg-slate-900 p-6 text-center text-white relative">
+      <h1 class="text-2xl font-bold">🚀 Admin Control Panel</h1>
+      <p class="text-slate-300 mt-1">เลือกระบบ เลือกรูป และพรีวิวก่อนส่งเข้า LINE</p>
+      <a href="<?= scriptUrl ?>" class="absolute top-4 right-4 bg-white/10 hover:bg-white/20 p-2 rounded-lg text-sm transition"><i class="fa-solid fa-house"></i> กลับเมนู</a>
     </div>
-    <div class="p-6 space-y-4">
-      <div id="loadingStatus" class="text-center text-slate-500 font-bold text-sm mb-2 animate-pulse">
-        <i class="fa-solid fa-hourglass-half text-amber-500"></i> กำลังโหลดข้อมูลล่าสุด...
+
+    <div class="p-6 md:p-8 space-y-8">
+      
+      <!-- 1. เลือกวันที่ -->
+      <div class="flex flex-col md:flex-row gap-4 bg-slate-50 p-6 rounded-xl border border-slate-200 items-center justify-between">
+        <div>
+          <h3 class="font-bold text-slate-800"><i class="fa-regular fa-calendar text-blue-600"></i> เลือกวันที่ต้องการรายงาน</h3>
+          <p class="text-sm text-slate-500">ระบบจะดึงข้อมูลล่าสุดของวันที่เลือกมาสร้างการ์ด</p>
+        </div>
+        <div class="flex gap-2 w-full md:w-auto">
+          <input type="date" id="targetDate" class="border p-2.5 rounded-lg flex-1 outline-none focus:border-blue-500 font-semibold text-slate-700">
+          <button onclick="fetchData()" id="btnFetch" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-bold shadow transition"><i class="fa-solid fa-rotate"></i> ดึงข้อมูล</button>
+        </div>
       </div>
-      <div id="cardSelection" class="space-y-3 hidden">
-        <label id="labelFire" class="check-card flex items-center gap-4 p-4 border-2 border-slate-200 rounded-xl cursor-pointer opacity-50 pointer-events-none">
-          <input type="checkbox" id="chkFire" class="w-5 h-5 accent-blue-600 rounded">
-          <span class="font-bold text-slate-700 text-lg"><i class="fa-solid fa-fire text-red-500 w-6"></i> รายงานไฟป่าและฝุ่น</span>
-        </label>
-        <label id="labelWeir" class="check-card flex items-center gap-4 p-4 border-2 border-slate-200 rounded-xl cursor-pointer opacity-50 pointer-events-none">
-          <input type="checkbox" id="chkWeir" class="w-5 h-5 accent-blue-600 rounded">
-          <span class="font-bold text-slate-700 text-lg"><i class="fa-solid fa-water text-blue-500 w-6"></i> รายงานการสร้างฝาย</span>
-        </label>
-        <label id="labelForest" class="check-card flex items-center gap-4 p-4 border-2 border-slate-200 rounded-xl cursor-pointer opacity-50 pointer-events-none">
-          <input type="checkbox" id="chkForest" class="w-5 h-5 accent-blue-600 rounded">
-          <span class="font-bold text-slate-700 text-lg"><i class="fa-solid fa-tree text-emerald-500 w-6"></i> รายงานปลูกป่าทดแทน</span>
-        </label>
-        <label id="labelUniversal" class="check-card check-card-uni flex items-center gap-4 p-4 border-2 border-slate-200 rounded-xl cursor-pointer opacity-50 pointer-events-none">
-          <input type="checkbox" id="chkUniversal" class="w-5 h-5 accent-amber-500 rounded">
-          <span class="font-bold text-slate-700 text-lg"><i class="fa-solid fa-star text-amber-500 w-6"></i> การ์ดรายงานพิเศษ</span>
-        </label>
+
+      <!-- 2. เลือกการ์ดหลัก -->
+      <div class="space-y-4">
+        <h3 class="font-bold text-slate-800 text-lg border-b pb-2"><i class="fa-solid fa-layer-group text-blue-600"></i> เลือกการ์ดที่จะส่ง และกำหนดรูปภาพหน้าปก</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="border-2 border-red-100 rounded-xl p-4 bg-white shadow-sm flex flex-col gap-3" id="boxFire">
+            <label class="flex items-center gap-3 font-bold text-slate-800 cursor-pointer">
+              <input type="checkbox" id="chkFire" checked class="w-5 h-5 accent-red-600"> 
+              <span class="text-red-600"><i class="fa-solid fa-fire"></i> ไฟป่าและฝุ่น</span>
+            </label>
+            <div id="statusFire" class="text-sm text-slate-500">รอการดึงข้อมูล...</div>
+            <input type="text" id="imgFire" placeholder="Image URL..." value="https://images.unsplash.com/photo-1590055531615-f16d36ffe8ce?q=80&w=800" class="w-full text-xs p-2 border rounded bg-slate-50">
+          </div>
+          <div class="border-2 border-blue-100 rounded-xl p-4 bg-white shadow-sm flex flex-col gap-3" id="boxWeir">
+            <label class="flex items-center gap-3 font-bold text-slate-800 cursor-pointer">
+              <input type="checkbox" id="chkWeir" checked class="w-5 h-5 accent-blue-600"> 
+              <span class="text-blue-600"><i class="fa-solid fa-water"></i> สร้าง/ซ่อมฝาย</span>
+            </label>
+            <div id="statusWeir" class="text-sm text-slate-500">รอการดึงข้อมูล...</div>
+            <input type="text" id="imgWeir" placeholder="Image URL..." value="https://images.unsplash.com/photo-1469122312224-c5846569feb1?q=80&w=800" class="w-full text-xs p-2 border rounded bg-slate-50">
+          </div>
+          <div class="border-2 border-emerald-100 rounded-xl p-4 bg-white shadow-sm flex flex-col gap-3" id="boxForest">
+            <label class="flex items-center gap-3 font-bold text-slate-800 cursor-pointer">
+              <input type="checkbox" id="chkForest" checked class="w-5 h-5 accent-emerald-600"> 
+              <span class="text-emerald-600"><i class="fa-solid fa-tree"></i> ปลูกป่าทดแทน</span>
+            </label>
+            <div id="statusForest" class="text-sm text-slate-500">รอการดึงข้อมูล...</div>
+            <input type="text" id="imgForest" placeholder="Image URL..." value="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?q=80&w=800" class="w-full text-xs p-2 border rounded bg-slate-50">
+          </div>
+        </div>
       </div>
-      <button id="btnShare" disabled onclick="shareTargetPicker()" class="w-full bg-slate-300 text-white font-bold py-4 rounded-xl shadow mt-4 transition text-lg flex items-center justify-center gap-2 cursor-not-allowed">
-        <i class="fa-solid fa-hourglass-half"></i> รอสักครู่...
-      </button>
+
+      <!-- 🌟 การ์ดพิเศษ (Universal Card) แบบเพิ่มหลายใบและเลือกลงรูปแทนข้อความได้ -->
+      <div class="space-y-4">
+        <h3 class="font-bold text-slate-800 text-lg border-b pb-2"><i class="fa-solid fa-star text-amber-500"></i> การ์ดรายงานพิเศษ (แนบพร้อมข่าวหลัก)</h3>
+        <div class="border-2 border-amber-200 rounded-xl p-5 bg-amber-50/30 flex flex-col gap-4">
+          <label class="flex items-center gap-3 font-bold text-slate-800 cursor-pointer">
+            <input type="checkbox" id="chkUniversal" class="w-5 h-5 accent-amber-500" onchange="toggleUniversalWrapper(this)"> 
+            <span class="text-amber-600">เปิดใช้งานการ์ดพิเศษ (สามารถสร้างได้หลายใบ)</span>
+          </label>
+          
+          <div id="universalWrapper" class="hidden flex-col gap-4 border-t border-amber-200 pt-4 mt-2">
+             <div id="universalCardsContainer" class="space-y-4">
+                <!-- การ์ดเปล่าจะถูกสร้างที่นี่ -->
+             </div>
+             <button type="button" onclick="addUniversalCard()" class="w-full py-3 bg-amber-100 text-amber-700 hover:bg-amber-200 border-2 border-dashed border-amber-400 rounded-xl font-bold transition"><i class="fa-solid fa-plus"></i> ➕ เพิ่มการ์ดพิเศษ</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- กลุ่มเป้าหมายและปุ่มส่ง -->
+      <div class="bg-slate-100 p-6 rounded-xl border border-slate-300 flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
+        <div class="flex items-center gap-3 w-full sm:w-auto">
+          <label class="font-bold text-slate-700 text-sm">กลุ่มเป้าหมาย:</label>
+          <select id="targetGroup" class="border p-2.5 rounded-lg bg-white font-semibold outline-none flex-1 sm:flex-none">
+            <option value="test">🔴 ส่งทดสอบ (Admin เท่านั้น)</option>
+            <option value="broadcast">🟢 ส่งจริง (Broadcast แจ้งทุกคน)</option>
+          </select>
+        </div>
+        <button onclick="previewAndSend()" id="btnSend" disabled class="w-full sm:w-auto bg-slate-400 text-white px-8 py-3.5 rounded-xl font-bold shadow-lg transition text-lg flex items-center justify-center gap-2">
+          <i class="fa-solid fa-eye"></i> พรีวิวข้อมูลก่อนส่ง
+        </button>
+      </div>
+
     </div>
   </div>
 
   <script>
-    const LIFF_ID = "2010468749-0aq8Z3bf"; 
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbwdkeaxpJXAhKnb_d0qMoVZvDY1c4snIqFqECqjxY7ZEDwsDxDA_TZZpdd7FIM9FPvpXg/exec"; 
+    let currentData = null;
 
-    let cachedCards = {};
+    // ⚡️ แก้ปัญหาโหลดค้างด้วย DOMContentLoaded ที่เสถียรที่สุด
+    document.addEventListener('DOMContentLoaded', function() {
+       initPage();
+    });
 
-    window.onload = async () => {
+    function initPage() {
       try {
-        await liff.init({ liffId: LIFF_ID });
-        if (!liff.isLoggedIn()) { liff.login(); return; }
-        fetchData();
-      } catch (err) { Swal.fire('Error', 'เชื่อมต่อ LINE ไม่ได้\n' + err.message, 'error'); }
-    };
-
-    async function fetchData() {
-      try {
-        const response = await fetch(GAS_URL + "?action=get_share_data");
-        cachedCards = await response.json();
-        let hasAnyData = false;
-
-        if (cachedCards.fire) { document.getElementById('labelFire').classList.remove('opacity-50', 'pointer-events-none'); document.getElementById('chkFire').checked = true; hasAnyData = true; }
-        if (cachedCards.weir) { document.getElementById('labelWeir').classList.remove('opacity-50', 'pointer-events-none'); document.getElementById('chkWeir').checked = true; hasAnyData = true; }
-        if (cachedCards.forest) { document.getElementById('labelForest').classList.remove('opacity-50', 'pointer-events-none'); document.getElementById('chkForest').checked = true; hasAnyData = true; }
-        if (cachedCards.universal && cachedCards.universal.length > 0) { document.getElementById('labelUniversal').classList.remove('opacity-50', 'pointer-events-none'); document.getElementById('chkUniversal').checked = true; hasAnyData = true; }
-
-        const statusEl = document.getElementById('loadingStatus');
-        const btn = document.getElementById('btnShare');
-
-        if (!hasAnyData) {
-          statusEl.innerHTML = `<i class="fa-solid fa-circle-exclamation text-red-500"></i> ไม่มีข้อมูลให้แชร์`;
-          btn.innerHTML = 'ยังไม่มีข้อมูล';
-        } else {
-          statusEl.style.display = 'none';
-          document.getElementById('cardSelection').classList.remove('hidden');
-          btn.disabled = false; btn.classList.replace('bg-slate-300', 'bg-blue-600'); btn.classList.replace('cursor-not-allowed', 'hover:bg-blue-700');
-          btn.innerHTML = '<i class="fa-solid fa-share-nodes"></i> เลือกเพื่อน/กลุ่ม เพื่อแชร์ต่อ';
+        const dateInput = document.getElementById('targetDate');
+        if (!dateInput.value) {
+           const today = new Date();
+           const yyyy = today.getFullYear();
+           const mm = String(today.getMonth() + 1).padStart(2, '0');
+           const dd = String(today.getDate()).padStart(2, '0');
+           dateInput.value = `${yyyy}-${mm}-${dd}`;
         }
-      } catch (error) { document.getElementById('loadingStatus').innerHTML = `<i class="fa-solid fa-triangle-exclamation text-red-500"></i> โหลดข้อมูลล้มเหลว!`; }
+
+        // ซิงค์ Checkbox การ์ดพิเศษ เผื่อเบราว์เซอร์จำค่าไว้
+        const chkUni = document.getElementById('chkUniversal');
+        if(chkUni && chkUni.checked) {
+           toggleUniversalWrapper(chkUni);
+        }
+
+        // เริ่มโหลดข้อมูลทันที
+        fetchData();
+      } catch(e) {
+        console.error("Init Error:", e);
+      }
     }
 
-    async function shareTargetPicker() {
-      let bubbles = [];
-      if (document.getElementById('chkFire').checked && cachedCards.fire) bubbles.push(cachedCards.fire);
-      if (document.getElementById('chkWeir').checked && cachedCards.weir) bubbles.push(cachedCards.weir);
-      if (document.getElementById('chkForest').checked && cachedCards.forest) bubbles.push(cachedCards.forest);
+    function toggleUniversalWrapper(chk) {
+      document.getElementById('universalWrapper').style.display = chk.checked ? 'flex' : 'none';
+      if(chk.checked && document.querySelectorAll('.uni-card-item').length === 0) {
+         addUniversalCard(); 
+      }
+    }
+
+    function switchContentType(sel) {
+      const card = sel.closest('.uni-card-item');
+      const txtGrp = card.querySelector('.u-text-group');
+      const imgGrp = card.querySelector('.u-image-group');
       
-      if (document.getElementById('chkUniversal').checked && cachedCards.universal) {
-        bubbles.push(...cachedCards.universal); 
+      if(sel.value === 'text') {
+          txtGrp.style.display = 'flex'; imgGrp.style.display = 'none';
+      } else if (sel.value === 'image') {
+          txtGrp.style.display = 'none'; imgGrp.style.display = 'flex';
+      } else {
+          txtGrp.style.display = 'none'; imgGrp.style.display = 'none';
+      }
+    }
+
+    function addUniversalCard() {
+      const container = document.getElementById('universalCardsContainer');
+      const html = `
+        <div class="uni-card-item flex flex-col gap-4 p-4 border border-amber-300 bg-white rounded-xl relative shadow-sm">
+          <button type="button" onclick="this.parentElement.remove()" class="absolute top-3 right-3 text-red-500 hover:bg-red-50 p-2 rounded-lg font-bold text-xs"><i class="fa-solid fa-trash"></i> ลบการ์ด</button>
+          
+          <div class="font-bold text-amber-700 text-sm border-b pb-2"><i class="fa-solid fa-star"></i> ตั้งค่าการ์ดพิเศษ</div>
+
+          <div class="flex items-center gap-2 bg-slate-50 p-2 rounded border">
+             <span class="text-xs font-bold text-slate-700">ขนาดการ์ดรวม (Bubble Size):</span>
+             <select class="u-bubble-size p-1 border rounded text-xs outline-none focus:border-amber-400 bg-white cursor-pointer flex-1">
+                <option value="giga" selected>Giga (กว้างที่สุด - แนะนำ)</option>
+                <option value="mega">Mega (กว้างปกติ)</option>
+                <option value="kilo">Kilo (แคบกว่าปกติ)</option>
+             </select>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <!-- Header -->
+             <div class="flex flex-col gap-2 p-3 bg-slate-50 rounded border">
+                <label class="flex items-center gap-2 font-bold text-slate-700 cursor-pointer text-sm">
+                   <input type="checkbox" class="u-chk-header w-4 h-4 accent-amber-500" checked> แสดงส่วนหัว
+                </label>
+                <div class="flex gap-2">
+                   <input type="text" class="u-title p-2 border rounded text-xs flex-1" placeholder="ชื่อเรื่อง...">
+                   <input type="color" class="u-color p-0 border rounded h-[34px] w-[40px] cursor-pointer" value="#8b5cf6">
+                </div>
+             </div>
+
+             <!-- Hero Image -->
+             <div class="flex flex-col gap-2 p-3 bg-slate-50 rounded border">
+                <label class="flex items-center gap-2 font-bold text-slate-700 cursor-pointer text-sm">
+                   <input type="checkbox" class="u-chk-image w-4 h-4 accent-amber-500" checked> แสดงรูปหน้าปก (Hero)
+                </label>
+                <input type="text" class="u-image p-2 border rounded text-xs w-full" placeholder="Image URL (สัดส่วน 20:10)...">
+             </div>
+
+             <!-- Content Selection -->
+             <div class="flex flex-col gap-2 p-3 bg-slate-50 rounded border md:col-span-2">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="font-bold text-slate-700 text-sm"><i class="fa-solid fa-align-left text-amber-500"></i> รูปแบบเนื้อหา:</span>
+                    <select class="u-content-type p-1.5 border rounded text-xs font-bold outline-none focus:border-amber-400 bg-white cursor-pointer" onchange="switchContentType(this)">
+                        <option value="text" selected>✍️ พิมพ์ข้อความปกติ</option>
+                        <option value="image">🖼️ แนบรูปภาพแทนข้อความ</option>
+                        <option value="none">❌ ไม่แสดงเนื้อหา</option>
+                    </select>
+                </div>
+                
+                <div class="u-text-group flex flex-col gap-2 mt-1 border-t pt-2 border-slate-200">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold text-slate-500">ขนาดอักษร:</span>
+                        <select class="u-text-size p-1 border rounded text-xs outline-none bg-white cursor-pointer">
+                            <option value="xs">xs</option>
+                            <option value="sm" selected>sm (มาตรฐาน)</option>
+                            <option value="md">md</option>
+                            <option value="lg">lg</option>
+                            <option value="xl">xl</option>
+                        </select>
+                    </div>
+                    <textarea class="u-text p-2 border rounded text-xs w-full h-24" placeholder="พิมพ์ข้อความ..."></textarea>
+                </div>
+
+                <div class="u-image-group hidden flex-col gap-2 mt-1 border-t pt-2 border-slate-200">
+                    <input type="text" class="u-body-image p-2 border rounded text-xs w-full" placeholder="วางลิงก์รูปภาพเนื้อหา...">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold text-slate-500">สัดส่วนรูปภาพ:</span>
+                        <select class="u-body-image-ratio p-1 border rounded text-xs outline-none bg-white cursor-pointer">
+                            <option value="1:1">1:1 (จัตุรัส)</option>
+                            <option value="4:3">4:3 (แนวนอน)</option>
+                            <option value="16:9">16:9 (แนวนอนกว้าง)</option>
+                            <option value="3:4" selected>3:4 (แนวตั้ง - A4)</option>
+                            <option value="9:16">9:16 (แนวตั้งสูง)</option>
+                        </select>
+                    </div>
+                </div>
+             </div>
+
+             <!-- Buttons -->
+             <div class="flex flex-col gap-2 p-3 bg-slate-50 rounded border md:col-span-2">
+                <label class="flex items-center gap-2 font-bold text-slate-700 cursor-pointer text-sm">
+                   <input type="checkbox" class="u-chk-button w-4 h-4 accent-amber-500" checked> แสดงปุ่ม 'อ่านเพิ่มเติม'
+                </label>
+                <input type="text" class="u-link p-2 border rounded text-xs w-full mb-1" placeholder="URL ลิงก์เป้าหมาย...">
+                <label class="flex items-center gap-2 font-bold text-slate-700 cursor-pointer text-sm border-t pt-2 mt-1">
+                   <input type="checkbox" class="u-chk-share w-4 h-4 accent-amber-500" checked> แสดงปุ่ม 'แชร์ต่อ'
+                </label>
+             </div>
+          </div>
+        </div>
+      `;
+      container.insertAdjacentHTML('beforeend', html);
+    }
+
+    function fetchData() {
+      let dateStr = document.getElementById('targetDate').value;
+      if(!dateStr) {
+         // Fallback หากเกิดบั๊กไม่มีวันที่
+         const today = new Date();
+         dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+         document.getElementById('targetDate').value = dateStr;
+      }
+      
+      const btn = document.getElementById('btnFetch');
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; 
+      btn.disabled = true;
+      document.getElementById('btnSend').disabled = true; 
+      document.getElementById('btnSend').classList.replace('bg-emerald-600', 'bg-slate-400');
+
+      google.script.run.withSuccessHandler(res => {
+        currentData = res;
+        updateUI('Fire', res.fire.hasData, `PM2.5: ${res.fire.avgPM} | Hotspot: ${res.fire.hsCount} จุด`);
+        updateUI('Weir', res.weir.hasData, `${res.weir.unit} (${res.weir.count} ฝาย)`);
+        updateUI('Forest', res.forest.hasData, `${res.forest.unit} (${res.forest.count} ต้น)`);
+        btn.innerHTML = '<i class="fa-solid fa-rotate"></i> ดึงข้อมูล'; 
+        btn.disabled = false;
+        document.getElementById('btnSend').disabled = false; 
+        document.getElementById('btnSend').classList.replace('bg-slate-400', 'bg-emerald-600');
+      }).withFailureHandler(err => {
+        btn.innerHTML = '<i class="fa-solid fa-rotate"></i> ดึงข้อมูล'; 
+        btn.disabled = false;
+        Swal.fire('ข้อผิดพลาดระบบ', err.toString(), 'error');
+      }).getAdminDashboardData(dateStr);
+    }
+
+    function updateUI(type, hasData, text) {
+      const statusEl = document.getElementById('status' + type); const boxEl = document.getElementById('box' + type); const chkEl = document.getElementById('chk' + type);
+      if(hasData) { statusEl.innerHTML = `<span class="text-emerald-600 font-bold"><i class="fa-solid fa-check-circle"></i> มีข้อมูล:</span> ${text}`; boxEl.classList.remove('opacity-50'); chkEl.checked = true; chkEl.disabled = false; } 
+      else { statusEl.innerHTML = `<span class="text-red-500 font-bold"><i class="fa-solid fa-xmark-circle"></i> ไม่มีข้อมูล</span>`; boxEl.classList.add('opacity-50'); chkEl.checked = false; chkEl.disabled = true; }
+    }
+
+    function previewAndSend() {
+      const sendFire = document.getElementById('chkFire').checked; const sendWeir = document.getElementById('chkWeir').checked; const sendForest = document.getElementById('chkForest').checked; const sendUni = document.getElementById('chkUniversal').checked;
+      
+      let uniNodes = document.querySelectorAll('.uni-card-item');
+      if(!sendFire && !sendWeir && !sendForest && (!sendUni || uniNodes.length === 0)) return Swal.fire('แจ้งเตือน', 'กรุณาเลือกการ์ดอย่างน้อย 1 ใบครับ', 'warning');
+
+      let cardsHtml = '';
+
+      if(sendFire) {
+        let img = document.getElementById('imgFire').value || 'https://images.unsplash.com/photo-1590055531615-f16d36ffe8ce?q=80&w=800';
+        cardsHtml += `
+          <div class="min-w-[280px] w-[280px] bg-white border border-slate-300 rounded-[16px] overflow-hidden shadow-md flex-shrink-0 snap-center text-left flex flex-col">
+            <div class="bg-[#111827] p-3 flex items-center justify-between"><div class="w-8 h-8 bg-white/20 rounded-full"></div><div class="text-xs text-white font-bold">ศนป.กอ.รมน.ภาค 3</div><div class="w-8 h-8 bg-white/20 rounded-full"></div></div>
+            <div class="bg-[#dc2626] text-white text-[13px] font-bold text-center py-2">🚨 รายงานสถานการณ์ไฟป่าและฝุ่น</div>
+            <div class="h-32 bg-cover bg-center" style="background-image: url('${img}')"></div>
+            <div class="p-4 text-xs text-slate-700 space-y-2 flex-1">
+              <div class="bg-blue-50 p-3 rounded-lg border border-blue-100"><div class="font-bold text-blue-600 mb-1">ภาพรวม PM2.5 ภาคเหนือ</div><div class="text-xl font-bold text-slate-800">${currentData.fire.avgPM} µg/m³</div></div>
+              <div class="font-bold text-red-600">🔥 จุดความร้อนรวม: ${currentData.fire.hsCount} จุด</div>
+              <div class="text-center pt-4 text-slate-400 text-[10px] mt-auto border-t border-slate-100">ปุ่ม: อ่านรายละเอียด | 📤 แชร์ต่อ</div>
+            </div>
+          </div>
+        `;
       }
 
-      if (bubbles.length === 0) return Swal.fire('แจ้งเตือน', 'กรุณาเลือกอย่างน้อย 1 รายการ', 'warning');
+      if(sendWeir) {
+        let img = document.getElementById('imgWeir').value || 'https://images.unsplash.com/photo-1469122312224-c5846569feb1?q=80&w=800';
+        cardsHtml += `
+          <div class="min-w-[280px] w-[280px] bg-white border border-slate-300 rounded-[16px] overflow-hidden shadow-md flex-shrink-0 snap-center text-left flex flex-col">
+            <div class="bg-[#111827] p-3 flex items-center justify-between"><div class="w-8 h-8 bg-white/20 rounded-full"></div><div class="text-xs text-white font-bold">ศนป.กอ.รมน.ภาค 3</div><div class="w-8 h-8 bg-white/20 rounded-full"></div></div>
+            <div class="bg-[#0284c7] text-white text-[13px] font-bold text-center py-2">💧 รายงานสรุปการสร้าง/ซ่อมแซมฝาย</div>
+            <div class="h-32 bg-cover bg-center" style="background-image: url('${img}')"></div>
+            <div class="p-4 text-xs text-slate-700 space-y-3 flex-1 flex flex-col">
+              <div class="flex justify-between border-b pb-2"><span class="text-slate-500">หน่วยดำเนินการ:</span> <span class="font-bold text-right">${currentData.weir.unit}</span></div>
+              <div class="flex justify-between border-b pb-2"><span class="text-slate-500">ประเภทฝาย:</span> <span class="font-bold text-right">${currentData.weir.type}</span></div>
+              <div class="text-center pt-4 text-slate-400 text-[10px] mt-auto border-t border-slate-100">ปุ่ม: อ่านรายละเอียด | 📤 แชร์ต่อ</div>
+            </div>
+          </div>
+        `;
+      }
 
-      let flexMessage = bubbles.length === 1 ? bubbles[0] : { "type": "carousel", "contents": bubbles };
-      let payload = [{ "type": "flex", "altText": "📋 สรุปรายงาน ศนป.กอ.รมน.ภาค 3", "contents": flexMessage }];
+      if(sendForest) {
+        let img = document.getElementById('imgForest').value || 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?q=80&w=800';
+        cardsHtml += `
+          <div class="min-w-[280px] w-[280px] bg-white border border-slate-300 rounded-[16px] overflow-hidden shadow-md flex-shrink-0 snap-center text-left flex flex-col">
+            <div class="bg-[#111827] p-3 flex items-center justify-between"><div class="w-8 h-8 bg-white/20 rounded-full"></div><div class="text-xs text-white font-bold">ศนป.กอ.รมน.ภาค 3</div><div class="w-8 h-8 bg-white/20 rounded-full"></div></div>
+            <div class="bg-[#059669] text-white text-[13px] font-bold text-center py-2">🌳 รายงานผลโครงการปลูกป่าทดแทน</div>
+            <div class="h-32 bg-cover bg-center" style="background-image: url('${img}')"></div>
+            <div class="p-4 text-xs text-slate-700 space-y-3 flex-1 flex flex-col">
+              <div class="flex justify-between border-b pb-2"><span class="text-slate-500">หน่วยดำเนินการ:</span> <span class="font-bold text-right">${currentData.forest.unit}</span></div>
+              <div class="flex justify-between border-b pb-2"><span class="text-slate-500">จำนวนต้นไม้:</span> <span class="font-bold text-right">${currentData.forest.count} ต้น</span></div>
+              <div class="text-center pt-4 text-slate-400 text-[10px] mt-auto border-t border-slate-100">ปุ่ม: อ่านรายละเอียด | 📤 แชร์ต่อ</div>
+            </div>
+          </div>
+        `;
+      }
 
-      if (liff.isApiAvailable('shareTargetPicker')) {
-        try {
-          const res = await liff.shareTargetPicker(payload);
-          if (res) Swal.fire({ title: 'สำเร็จ!', text: 'แชร์รายงานเรียบร้อยแล้ว', icon: 'success' }).then(() => liff.closeWindow());
-        } catch (err) { Swal.fire('Error', 'การแชร์ล้มเหลว', 'error'); }
-      } else { Swal.fire('แจ้งเตือน', 'แอปพลิเคชันนี้ไม่รองรับการแชร์บนเบราว์เซอร์นี้', 'warning'); }
+      let universalList = [];
+      if(sendUni) {
+        uniNodes.forEach(card => {
+          let uBubbleSize = card.querySelector('.u-bubble-size').value;
+          let uChkHeader = card.querySelector('.u-chk-header').checked;
+          let uTitle = card.querySelector('.u-title').value || '📌 ภารกิจพิเศษ';
+          let uColor = card.querySelector('.u-color').value;
+          let uChkImage = card.querySelector('.u-chk-image').checked;
+          let uImage = card.querySelector('.u-image').value || 'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?q=80&w=800';
+          
+          let uContentType = card.querySelector('.u-content-type').value;
+          let uTextSize = card.querySelector('.u-text-size').value;
+          let uText = card.querySelector('.u-text').value || '';
+          let uBodyImage = card.querySelector('.u-body-image').value || '';
+          let uBodyImageRatio = card.querySelector('.u-body-image-ratio').value;
+          
+          let uChkButton = card.querySelector('.u-chk-button').checked;
+          let uChkShare = card.querySelector('.u-chk-share').checked;
+          let uLink = card.querySelector('.u-link').value;
+
+          universalList.push({
+             bubbleSize: uBubbleSize, title: uTitle, color: uColor, 
+             image: uImage, text: uText, textSize: uTextSize, link: uLink,
+             contentType: uContentType, bodyImage: uBodyImage, bodyImageRatio: uBodyImageRatio,
+             toggles: { header: uChkHeader, image: uChkImage, button: uChkButton, share: uChkShare }
+          });
+
+          let widthClass = "min-w-[280px] w-[280px]";
+          if(uBubbleSize === "mega") widthClass = "min-w-[260px] w-[260px]";
+          if(uBubbleSize === "kilo") widthClass = "min-w-[220px] w-[220px]";
+
+          let textSizeClass = "text-[13px]"; 
+          if (uTextSize === "xs") textSizeClass = "text-[11px]";
+          if (uTextSize === "md") textSizeClass = "text-[15px]";
+          if (uTextSize === "lg") textSizeClass = "text-[17px]";
+          if (uTextSize === "xl") textSizeClass = "text-[19px]";
+
+          let headerHtml = '';
+          if(uChkHeader) {
+             headerHtml = `
+              <div class="bg-[#111827] p-3 flex items-center justify-between"><div class="w-8 h-8 bg-white/20 rounded-full"></div><div class="text-xs text-white font-bold">ศนป.กอ.รมน.ภาค 3</div><div class="w-8 h-8 bg-white/20 rounded-full"></div></div>
+              <div style="background-color: ${uColor};" class="text-white text-[13px] font-bold text-center py-2">${uTitle}</div>`;
+          }
+          let imgHtml = '';
+          if(uChkImage) imgHtml = `<div class="h-32 bg-cover bg-center" style="background-image: url('${uImage}')"></div>`;
+
+          let bodyHtml = '';
+          if(uContentType !== 'none' || uChkButton || uChkShare) {
+             let contentHtml = '';
+             if(uContentType === 'text' && uText) {
+                contentHtml = `<div class="mb-2 whitespace-pre-wrap leading-relaxed ${textSizeClass}">${uText}</div>`;
+             } else if(uContentType === 'image' && uBodyImage) {
+                let arParts = uBodyImageRatio.split(':');
+                let pb = (arParts[1] / arParts[0]) * 100; 
+                contentHtml = `
+                  <div class="relative w-full rounded border mb-2 overflow-hidden bg-slate-50" style="padding-bottom: ${pb}%;">
+                     <img src="${uBodyImage}" class="absolute top-0 left-0 w-full h-full object-contain">
+                  </div>`;
+             }
+
+             bodyHtml = `<div class="p-4 text-slate-700 space-y-2 flex-1 flex flex-col">
+                ${contentHtml}
+                <div class="text-center pt-4 text-slate-400 text-[10px] mt-auto border-t border-slate-100">
+                  ปุ่ม: ${uChkButton ? 'อ่านเพิ่มเติม' : ''} ${uChkShare ? '| 📤 แชร์ต่อ' : ''}
+                </div>
+             </div>`;
+          }
+
+          cardsHtml += `<div class="${widthClass} bg-white border border-slate-300 rounded-[16px] overflow-hidden shadow-md flex-shrink-0 snap-center text-left flex flex-col">${headerHtml}${imgHtml}${bodyHtml}</div>`;
+        });
+      }
+
+      let previewHTML = `
+        <div class="text-left text-sm mb-3 font-bold text-slate-700"><i class="fa-solid fa-mobile-screen-button mr-1"></i> ภาพจำลองการแสดงผลบนมือถือ:</div>
+        <div class="flex overflow-x-auto gap-4 pb-4 px-2 snap-x hide-scroll bg-slate-100 py-6 rounded-xl border-y border-slate-300 shadow-inner">
+          ${cardsHtml}
+        </div>
+        <div class="text-[11px] text-red-500 mt-4 text-left font-bold">* จำลองผลลัพธ์คร่าวๆ (ขนาดและการตัดคำใน LINE อาจแตกต่างเล็กน้อย)</div>
+      `;
+
+      Swal.fire({
+        title: 'ตรวจสอบก่อนส่ง (Preview)',
+        html: previewHTML,
+        width: 'auto',
+        padding: '1em',
+        showCancelButton: true,
+        confirmButtonText: '<i class="fa-regular fa-paper-plane"></i> ยืนยันส่งเข้า LINE',
+        cancelButtonText: 'ยกเลิก',
+        confirmButtonColor: '#059669',
+        customClass: { popup: 'rounded-3xl' }
+      }).then((result) => {
+        if (result.isConfirmed) executeSend(sendFire, sendWeir, sendForest, sendUni, universalList);
+      });
+    }
+
+    function executeSend(sendFire, sendWeir, sendForest, sendUni, universalList) {
+      const payload = {
+        date: document.getElementById('targetDate').value,
+        target: document.getElementById('targetGroup').value,
+        cards: { fire: sendFire, weir: sendWeir, forest: sendForest, universal: sendUni },
+        images: { fire: document.getElementById('imgFire').value, weir: document.getElementById('imgWeir').value, forest: document.getElementById('imgForest').value },
+        data: currentData,
+        universalList: universalList 
+      };
+      
+      Swal.fire({ title: 'กำลังยิงข้อมูลเข้า LINE...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      google.script.run.withSuccessHandler(res => {
+        if(res.status === 'success') Swal.fire('สำเร็จ!', res.message, 'success'); else Swal.fire('ผิดพลาด!', res.message, 'error');
+      }).withFailureHandler(err => {
+        Swal.fire('ข้อผิดพลาดระบบ', err.toString(), 'error');
+      }).sendReportToLine(payload);
     }
   </script>
 </body>
