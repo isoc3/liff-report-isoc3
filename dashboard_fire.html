@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard PM2.5 & Hotspot - ศนป.กอ.รมน.ภาค 3</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    body { font-family: 'Sarabun', sans-serif; background: #e2e8f0; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+    #capture-area { width: 100%; max-width: 1450px; background: #f8fafc; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.15); overflow: hidden; display: none; }
+    .header-section { background: #1e3a8a; color: white; padding: 15px 30px; display: flex; align-items: center; justify-content: space-between; border-bottom: 5px solid #3b82f6; }
+    .header-logo { display: flex; align-items: center; justify-content: center; height: 70px; flex-shrink: 0; }
+    .header-logo img { height: 100%; width: auto; object-fit: contain; background-color: #ffffff; padding: 8px 15px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.15); }
+    .header-text { flex: 1; text-align: center; padding: 0 20px; }
+    .header-section h2 { margin: 0; font-size: 24px; font-weight: bold; letter-spacing: 0.5px; line-height: 1.3; }
+    .header-section p { margin: 5px 0 0 0; font-size: 15px; color: #bfdbfe; }
+    .dashboard-layout { display: grid; grid-template-columns: 42% 58%; gap: 20px; padding: 20px; align-items: stretch; }
+    .card { background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; overflow: hidden; display: flex; flex-direction: column; }
+    .card-header { padding: 12px 15px; color: white; font-size: 18px; font-weight: bold; text-align: center; }
+    .map-panel { height: 100%; min-height: 850px; } 
+    #map-area { flex: 1; width: 100%; height: 100%; }
+    .tables-panel { display: flex; flex-direction: column; gap: 20px; }
+    .hotspot-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+    .hotspot-table th { background: #f1f5f9; color: #334155; padding: 12px; text-align: left; font-size: 14px; border-bottom: 2px solid #cbd5e1; }
+    .hotspot-table td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; color: #1e293b; }
+    .total-row { background: #fee2e2; font-weight: bold; color: #b91c1c; font-size: 16px; }
+    .total-row td { border-top: 2px solid #fca5a5; }
+    .pm-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 14px; }
+    .pm-table th { background: #f1f5f9; color: #334155; padding: 10px; font-size: 13px; border-bottom: 2px solid #cbd5e1; }
+    .pm-table td { padding: 9px 5px; border-bottom: 1px solid #f1f5f9; }
+    .data-pill { display: inline-block; padding: 4px 10px; border-radius: 8px; font-weight: bold; min-width: 45px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+    .rank-badge { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; background: #e2e8f0; border-radius: 50%; font-size: 12px; font-weight: bold; color: #475569;}
+    .pm-summary-row { background: #f8fafc; font-weight: bold; }
+    .pm-summary-row td { border-top: 2px solid #cbd5e1; padding: 12px 5px; }
+    .btn-download { margin-top: 25px; background: #059669; color: white; border: none; padding: 16px 40px; border-radius: 12px; font-size: 18px; font-weight: bold; font-family: 'Sarabun'; cursor: pointer; transition: 0.2s; box-shadow: 0 6px 15px rgba(5,150,105,0.3); display: none; }
+    .btn-download:hover { background: #047857; transform: translateY(-3px); }
+    .btn-download:disabled { background: #94a3b8; cursor: not-allowed; transform: none; }
+    @media (max-width: 1024px) { .dashboard-layout { grid-template-columns: 1fr; } .map-panel { min-height: 600px; } }
+  </style>
+</head>
+<body>
+
+  <!-- ปุ่มนำทางด้านซ้ายบน -->
+  <div style="position: fixed; top: 20px; left: 20px; z-index: 999; display: flex; gap: 10px;">
+    <a href="home.html" style="background-color: #ffffff; color: #334155; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); border: 2px solid #cbd5e1; display: flex; align-items: center; gap: 8px;">🏠 กลับหน้าเมนู</a>
+    <a href="form_fire.html" style="background-color: #ffffff; color: #dc2626; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); border: 2px solid #dc2626; display: flex; align-items: center; gap: 8px;">📝 ฟอร์มจุดความร้อน</a>
+  </div>
+
+  <!-- แท่นโหลดข้อมูลตอนเริ่มแรก -->
+  <div id="loadingView" class="flex flex-col items-center justify-center min-h-[50vh] text-slate-600 font-bold gap-3">
+     <i class="fa-solid fa-spinner fa-spin text-4xl text-blue-600"></i>
+     <span>กำลังดึงข้อมูลและประมวลผลระบบแผนที่วิเคราะห์...</span>
+  </div>
+
+  <!-- บล็อกพื้นที่หลักที่ใช้ดึงภาพ Capture -->
+  <div id="capture-area">
+    <div class="header-section">
+      <div class="header-logo"><img src="https://lh3.googleusercontent.com/d/1BN7SKJAsPCyBx3cUV_LNDXRcjnP86Th1" alt="Logo Left"></div>
+      <div class="header-text">
+        <h2>สรุปสถานการณ์ฝุ่น PM2.5 และจุดความร้อน (Hotspot) 17 จังหวัดภาคเหนือ</h2>
+        <p id="dashboardTimestamp">ข้อมูลประจำวันที่ --/--/---- เวลา --.-- น.</p>
+      </div>
+      <div class="header-logo"><img src="https://lh3.googleusercontent.com/d/1vereUg2XeLoYyKQSiamrJpaHNgmrgwj4" alt="Logo Right"></div>
+    </div>
+
+    <div class="dashboard-layout">
+      <!-- ส่วนแผนที่ความร้อนด้านซ้าย -->
+      <div class="card map-panel">
+        <div class="card-header" style="background: #ef4444;">🔥 แผนที่จุดความร้อน (Hotspot)</div>
+        <div id="map-area"></div>
+      </div>
+
+      <!-- ส่วนตารางรายงานฝั่งขวา -->
+      <div class="tables-panel">
+        <!-- 1. ตาราง Hotspot -->
+        <div class="card">
+          <div class="card-header" style="background: #334155;">📊 สรุปจุดความร้อนรายพื้นที่รับผิดชอบ</div>
+          <table class="hotspot-table">
+            <thead><tr><th>ประเภทพื้นที่รับผิดชอบ</th><th style="text-align: center; width: 120px;">จำนวน (จุด)</th></tr></thead>
+            <tbody id="hotspotTbody">
+               <!-- ข้อมูลถูกเติมด้วย Javascript -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 2. ตารางค่าฝุ่น PM2.5 -->
+        <div class="card">
+          <div class="card-header" style="background: #10b981;">🍃 คุณภาพอากาศ (PM2.5 / AQI)</div>
+          <table class="pm-table">
+            <thead><tr><th width="8%">#</th><th width="37%" style="text-align: left;">พื้นที่ / สถานีตรวจวัด</th><th width="15%">PM2.5</th><th width="15%">AQI</th><th width="25%">ผลกระทบ</th></tr></thead>
+            <tbody id="pmTbody">
+               <!-- ข้อมูลถูกเติมด้วย Javascript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-download" id="btnDownload" onclick="downloadAndSaveImage()">📥 บันทึกลง Drive และดาวน์โหลดรูปภาพ</button>
+
+  <script>
+    // 🚨 อย่าลืมเปลี่ยนลิงก์ตรงนี้ให้เป็น URL ของเว็บแอป (GAS Web App URL ที่มี /exec คอนเฟิร์มตัวเดิมครับ)
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbz85i6L2Q0l25nb4fxQ4zBfqz9kBL7OWMSaX8RwlFV_V8DIqfKyMIRsNi1BE6SeV_SSxA/exec"; 
+
+    let reportDateStr = "";
+    var thaiToMapKey = { 'เชียงใหม่': 'chiangmai', 'เชียงราย': 'chiangrai', 'แม่ฮ่องสอน': 'maehongson', 'พะเยา': 'phayao', 'แพร่': 'phrae', 'น่าน': 'nan', 'ลำพูน': 'lamphun', 'ลำปาง': 'lampang', 'อุตรดิตถ์': 'uttaradit', 'สุโขทัย': 'sukhothai', 'ตาก': 'tak', 'พิษณุโลก': 'phitsanulok', 'กำแพงเพชร': 'kamphaengphet', 'พิจิตร': 'phichit', 'เพชรบูรณ์': 'phetchabun', 'นครสวรรค์': 'nakhonsawan', 'อุทัยธานี': 'uthaithani' };
+
+    document.addEventListener('DOMContentLoaded', function() {
+       loadDashboardData();
+    });
+
+    async function loadDashboardData() {
+       try {
+          const response = await fetch(GAS_URL + "?action=get_dashboard_data");
+          if (!response.ok) throw new Error("ดึงข้อมูลจากหลังบ้านไม่สำเร็จ");
+          const data = await response.json();
+          
+          reportDateStr = data.summary.date;
+          
+          // ซ่อนสถานะกำลังโหลด และเปิดโชว์แดชบอร์ดหลัก
+          document.getElementById('loadingView').style.display = 'none';
+          document.getElementById('capture-area').style.display = 'block';
+          document.getElementById('btnDownload').style.display = 'inline-block';
+
+          // 1. ผูกข้อมูลหัวรายงาน
+          document.getElementById('dashboardTimestamp').innerText = `ข้อมูลประจำวันที่ ${data.summary.date} เวลา ${data.summary.time}`;
+
+          // 2. เรนเดอร์ตาราง Hotspot (พื้นที่รับผิดชอบ)
+          let hsHtml = '';
+          data.hotspots.details.forEach(item => {
+             hsHtml += `<tr><td>${item.type}</td><td style="text-align: center; font-weight: bold; color: #dc2626;">${item.count}</td></tr>`;
+          });
+          hsHtml += `<tr class="total-row"><td>รวมจุดความร้อนทั้งหมด</td><td style="text-align: center;">${data.hotspots.total}</td></tr>`;
+          document.getElementById('hotspotTbody').innerHTML = hsHtml;
+
+          // 3. เรนเดอร์ตารางค่าฝุ่น PM2.5
+          let pmHtml = '';
+          data.records.forEach(r => {
+             pmHtml += `
+               <tr>
+                 <td><span class="rank-badge">${r.rank}</span></td>
+                 <td style="text-align: left; white-space: nowrap; font-size: 13.5px;">${r.area}</td>
+                 <td><span class="data-pill" style="background:${r.pmBg}; color:${r.pmText};">${r.pm}</span></td>
+                 <td><span class="data-pill" style="background:${r.aqiBg}; color:${r.aqiText};">${r.aqi}</span></td>
+                 <td><span class="data-pill" style="background:${r.pmBg}; color:${r.pmText}; font-size:12px;">${r.impactText}</span></td>
+               </tr>`;
+          });
+          pmHtml += `
+            <tr class="pm-summary-row">
+              <td colspan="2" style="text-align:right; padding-right:15px; font-size: 14px;">ค่าเฉลี่ย 17 จว.</td>
+              <td><span class="data-pill" style="background:${data.summary.avgPMBg}; color:${data.summary.avgPMText};">${data.summary.avgPM}</span></td>
+              <td><span class="data-pill" style="background:${data.summary.avgAQIBg}; color:${data.summary.avgAQIText};">${data.summary.avgAQI}</span></td>
+              <td><span class="data-pill" style="background:${data.summary.avgPMBg}; color:${data.summary.avgPMText}; font-size:12px;">${data.summary.avgImpactText}</span></td>
+            </tr>`;
+          document.getElementById('pmTbody').innerHTML = pmHtml;
+
+          // 4. บิลด์แผนที่ ECharts
+          document.fonts.ready.then(() => {
+             initMap(data.hotspots.byProvince);
+          });
+
+       } catch(err) {
+          console.error(err);
+          document.getElementById('loadingView').innerHTML = `<span class="text-red-500 font-bold"><i class="fa-solid fa-circle-exclamation"></i> ผิดพลาด: ${err.message}</span>`;
+       }
+    }
+
+    function initMap(hotspotData) {
+      var myChart = echarts.init(document.getElementById('map-area'));
+      fetch('https://raw.githubusercontent.com/apisit/thailand.json/master/thailand.json')
+        .then(res => res.json())
+        .then(geoJson => {
+          geoJson.features = geoJson.features.filter(f => {
+            var pName = (f.properties.name || f.properties.NAME_1 || "").replace(/\s/g, '').toLowerCase();
+            if(Object.values(thaiToMapKey).includes(pName)) { f.properties.name = pName; return true; } return false;
+          });
+          
+          echarts.registerMap('thailand_north', geoJson);
+          var mapDisplayData = Object.keys(thaiToMapKey).map(prov => ({ name: thaiToMapKey[prov], thaiName: prov, value: hotspotData[prov] || 0 }));
+          var maxVal = Math.max(...mapDisplayData.map(d => d.value)); if (maxVal === 0) maxVal = 10; 
+          
+          myChart.setOption({
+            visualMap: { min: 0, max: maxVal, text: ['สูง', 'ต่ำ'], realtime: false, calculable: true, inRange: { color: ['#fff5f5', '#fca5a5', '#ef4444', '#991b1b'] }, bottom: '3%', left: '3%', itemHeight: 120, textStyle: { color: '#334155', fontWeight: 'bold' } },
+            series: [{ type: 'map', map: 'thailand_north', roam: false, zoom: 1.15, top: 'center', left: 'center', itemStyle: { borderColor: '#cbd5e1', borderWidth: 1.5, areaColor: '#f1f5f9' },
+              label: { show: true, formatter: function(params) { if (!params.data) return ''; var val = params.data.value; var tName = params.data.thaiName; return val > 0 ? '{hotspot|' + val + '}\n{name|' + tName + '}' : '{name|' + tName + '}'; },
+                rich: { hotspot: { color: '#dc2626', fontSize: 18, fontWeight: 'bold', textBorderColor: '#ffffff', textBorderWidth: 4, padding: [0, 0, 3, 0] }, name: { color: '#1e293b', fontSize: 12, fontWeight: 'bold', textBorderColor: '#ffffff', textBorderWidth: 2 } }
+              }, data: mapDisplayData 
+            }]
+          });
+        });
+    }
+
+    function downloadAndSaveImage() {
+      const btn = document.getElementById('btnDownload');
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึกรูปลง Drive และเตรียมไฟล์...';
+      btn.disabled = true;
+
+      html2canvas(document.getElementById('capture-area'), { scale: 2, backgroundColor: '#e2e8f0', useCORS: true }).then(canvas => {
+        let dataUrl = canvas.toDataURL('image/png');
+        
+        // 1. ยิงดาวน์โหลดลงเครื่อง Client ปกติก่อน
+        var link = document.createElement('a'); 
+        link.download = `Dashboard_PM25_Hotspot_${reportDateStr.replace(/\//g, "-")}.png`; 
+        link.href = dataUrl; 
+        link.click();
+
+        // 2. ยิงผ่าน API POST เพื่อให้ GAS แอบบันทึกเก็บใส่คลัง Drive ส่วนกลางหน่วยงาน
+        fetch(GAS_URL, {
+           method: 'POST',
+           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+           body: JSON.stringify({
+              action: 'save_dashboard_image',
+              data: { base64Data: dataUrl, dateStr: reportDateStr }
+           })
+        })
+        .then(res => res.json())
+        .then(res => {
+          btn.innerHTML = '📥 บันทึกลง Drive และดาวน์โหลดรูปภาพ';
+          btn.disabled = false;
+          if(res.success) {
+            Swal.fire({ title: 'สำเร็จ!', text: 'บันทึกรูป Dashboard ลง Google Drive ประจำวันนี้เรียบร้อยแล้ว', icon: 'success', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
+          } else {
+            Swal.fire('แจ้งเตือนระบบ', 'ดาวน์โหลดลงเครื่องเรียบร้อย แต่บันทึกไปที่ Drive ล้มเหลว: ' + res.error, 'warning');
+          }
+        })
+        .catch(err => {
+           btn.innerHTML = '📥 บันทึกลง Drive และดาวน์โหลดรูปภาพ';
+           btn.disabled = false;
+           Swal.fire('Error', 'การเชื่อมต่อเซิร์ฟเวอร์ขัดข้อง: ' + err.toString(), 'error');
+        });
+      });
+    }
+  </script>
+</body>
+</html>
