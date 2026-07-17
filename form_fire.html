@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ฟอร์มจุดความร้อน</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    body { font-family: 'Sarabun', sans-serif; background: #f1f5f9; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; position: relative;}
+    .home-btn { position: absolute; top: 15px; left: 15px; background: white; padding: 10px 15px; border-radius: 8px; text-decoration: none; color: #1e293b; font-weight: bold; font-size: 14px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #cbd5e1; }
+    .form-container { width: 100%; max-width: 1100px; background: white; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); overflow: hidden; padding-bottom: 30px; margin-top: 40px;}
+    .form-header { background: #1e3a8a; color: white; padding: 20px; text-align: center; border-bottom: 4px solid #3b82f6; }
+    .form-header h2 { margin: 0; font-size: 22px; }
+    .form-header p { margin: 5px 0 0 0; font-size: 14px; color: #bfdbfe; }
+    .meta-input-section { display: flex; gap: 20px; padding: 20px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; justify-content: center; flex-wrap: wrap;}
+    .meta-group { display: flex; align-items: center; gap: 10px; }
+    .meta-group label { font-weight: bold; color: #334155; }
+    .meta-group input { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: 'Sarabun'; font-size: 14px; }
+    .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; padding: 20px; }
+    @media (max-width: 768px) { .grid-container { grid-template-columns: 1fr; } }
+    .section-title { font-size: 16px; font-weight: bold; color: #1e293b; margin-bottom: 15px; padding-bottom: 5px; border-bottom: 2px solid #cbd5e1; display: flex; justify-content: space-between; }
+    .input-table { width: 100%; border-collapse: collapse; }
+    .input-table td { padding: 6px 10px; border-bottom: 1px solid #f1f5f9; }
+    .input-table label { color: #475569; font-size: 14px; }
+    .input-table input { width: 80px; padding: 6px; text-align: center; border: 1px solid #cbd5e1; border-radius: 6px; font-family: 'Sarabun'; font-size: 14px; font-weight: bold; }
+    .validation-bar { background: #f8fafc; margin: 0 20px; padding: 20px; border-radius: 12px; border: 2px dashed #cbd5e1; display: flex; justify-content: space-around; align-items: center; flex-wrap: wrap; gap: 15px;}
+    .calc-box { text-align: center; }
+    .calc-box span { font-size: 14px; color: #64748b; font-weight: bold; }
+    .calc-box h3 { margin: 5px 0 0 0; font-size: 24px; color: #1e293b; }
+    .status-box { text-align: center; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 15px; min-width: 250px; }
+    .status-match { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+    .status-mismatch { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+    .submit-section { text-align: center; margin-top: 25px; }
+    .btn-submit { background: #2563eb; color: white; border: none; padding: 12px 40px; border-radius: 8px; font-size: 16px; font-weight: bold; font-family: 'Sarabun'; cursor: pointer; transition: 0.2s; }
+    .btn-submit:disabled { background: #cbd5e1; color: #94a3b8; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+
+  <a href="home.html" class="home-btn"><i class="fa-solid fa-house"></i> กลับเมนู</a>
+
+  <div class="form-container">
+    <div class="form-header">
+      <h2>📝 ระบบบันทึกข้อมูลจุดความร้อน (Hotspot)</h2>
+      <p>กรุณากรอกข้อมูลตัวเลขจุดความร้อนประจำวัน ระบบจะทำการตรวจสอบความถูกต้องอัตโนมัติ</p>
+    </div>
+
+    <form id="hotspotForm" onsubmit="handleSubmit(event)">
+      <div class="meta-input-section">
+        <div class="meta-group"><label>ข้อมูลประจำวันที่:</label><input type="text" id="reportDate" required placeholder="เช่น 2026-06-23"></div>
+        <div class="meta-group"><label>เวลา (รอบรายงาน):</label><input type="text" id="reportTime" required placeholder="เช่น รอบเช้า (08.00) น."></div>
+      </div>
+
+      <div class="grid-container">
+        <div>
+          <div class="section-title"><span>📍 จุดความร้อน 17 จังหวัดภาคเหนือ</span><span style="color: #64748b;" id="prov-count-indicator">(รวม 0 จุด)</span></div>
+          <table class="input-table"><tbody id="province-inputs"></tbody></table>
+        </div>
+        <div>
+          <div class="section-title"><span>🛡️ จุดความร้อนรายพื้นที่รับผิดชอบ</span><span style="color: #64748b;" id="type-count-indicator">(รวม 0 จุด)</span></div>
+          <table class="input-table"><tbody id="type-inputs"></tbody></table>
+        </div>
+      </div>
+
+      <div class="validation-bar">
+        <div class="calc-box"><span>ผลรวม 17 จังหวัด</span><h3 id="sum-provinces">0</h3></div>
+        <div id="status-message" class="status-box status-match">🟢 ตัวเลขตรงกัน: พร้อมบันทึกข้อมูล</div>
+        <div class="calc-box"><span>ผลรวมพื้นที่รับผิดชอบ</span><h3 id="sum-types">0</h3></div>
+      </div>
+
+      <div class="submit-section">
+        <button type="submit" id="submitBtn" class="btn-submit">💾 บันทึกข้อมูลเข้าสู่ระบบ</button>
+      </div>
+    </form>
+  </div>
+
+<script>
+  // 🚨 ใส่ API URL ของคุณตรงนี้ครับ
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbz85i6L2Q0l25nb4fxQ4zBfqz9kBL7OWMSaX8RwlFV_V8DIqfKyMIRsNi1BE6SeV_SSxA/exec";
+
+  const provinces = ['เชียงใหม่', 'เชียงราย', 'แม่ฮ่องสอน', 'พะเยา', 'แพร่', 'น่าน', 'ลำพูน', 'ลำปาง', 'อุตรดิตถ์', 'สุโขทัย', 'ตาก', 'พิษณุโลก', 'กำแพงเพชร', 'พิจิตร', 'เพชรบูรณ์', 'นครสวรรค์', 'อุทัยธานี'];
+  const areaTypes = ['พื้นที่เกษตร', 'เขต สปก.', 'ป่าสงวนแห่งชาติ', 'ชุมชนและอื่นๆ', 'พื้นที่ริมทางหลวง', 'ป่าอนุรักษ์'];
+
+  window.onload = function() {
+    const today = new Date(); const tzOffset = today.getTimezoneOffset() * 60000;
+    document.getElementById('reportDate').value = (new Date(Date.now() - tzOffset)).toISOString().split('T')[0];
+    document.getElementById('reportTime').value = today.getHours() < 12 ? "รอบเช้า (08.00) น." : "รอบเย็น (16.00) น.";
+
+    const provBody = document.getElementById('province-inputs');
+    provinces.forEach(p => { provBody.innerHTML += `<tr><td><label>${p}</label></td><td style="text-align:right;"><input type="number" class="prov-input" data-name="${p}" value="0" min="0" oninput="calculateTotals()"></td></tr>`; });
+
+    const typeBody = document.getElementById('type-inputs');
+    areaTypes.forEach(t => { typeBody.innerHTML += `<tr><td><label>${t}</label></td><td style="text-align:right;"><input type="number" class="type-input" data-name="${t}" value="0" min="0" oninput="calculateTotals()"></td></tr>`; });
+    calculateTotals();
+  };
+
+  function calculateTotals() {
+    let sumProv = 0, sumType = 0;
+    document.querySelectorAll('.prov-input').forEach(i => sumProv += parseInt(i.value) || 0);
+    document.querySelectorAll('.type-input').forEach(i => sumType += parseInt(i.value) || 0);
+
+    document.getElementById('sum-provinces').innerText = sumProv; document.getElementById('sum-types').innerText = sumType;
+    document.getElementById('prov-count-indicator').innerText = `(รวม ${sumProv} จุด)`; document.getElementById('type-count-indicator').innerText = `(รวม ${sumType} จุด)`;
+
+    const statusMsg = document.getElementById('status-message'), submitBtn = document.getElementById('submitBtn');
+    if (sumProv !== sumType) {
+      statusMsg.innerText = `🔴 ตัวเลขไม่ตรงกัน (ต่างกันอยู่ ${Math.abs(sumProv - sumType)} จุด)`;
+      statusMsg.className = "status-box status-mismatch"; submitBtn.disabled = true;
+    } else {
+      statusMsg.innerText = "🟢 ตัวเลขตรงกัน: พร้อมบันทึกข้อมูล";
+      statusMsg.className = "status-box status-match"; submitBtn.disabled = false;
+    }
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.innerText = "⏳ กำลังบันทึก..."; submitBtn.disabled = true;
+
+    const payload = { date: document.getElementById('reportDate').value, time: document.getElementById('reportTime').value, provinces: {}, types: [] };
+    document.querySelectorAll('.prov-input').forEach(i => payload.provinces[i.getAttribute('data-name')] = parseInt(i.value) || 0);
+    document.querySelectorAll('.type-input').forEach(i => payload.types.push({ type: i.getAttribute('data-name'), count: parseInt(i.value) || 0 }));
+
+    try {
+      const res = await fetch(GAS_URL, {
+        method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'submit_hotspot', data: payload })
+      }).then(r => r.json());
+
+      if(res.success) {
+        Swal.fire('สำเร็จ!', 'บันทึกข้อมูลจุดความร้อนเรียบร้อยแล้วครับ', 'success').then(() => location.reload());
+      } else {
+        Swal.fire('ผิดพลาด', res.error, 'error');
+        submitBtn.innerText = "💾 บันทึกข้อมูลเข้าสู่ระบบ"; submitBtn.disabled = false;
+      }
+    } catch(err) {
+      Swal.fire('ผิดพลาด', err.toString(), 'error');
+      submitBtn.innerText = "💾 บันทึกข้อมูลเข้าสู่ระบบ"; submitBtn.disabled = false;
+    }
+  }
+</script>
+</body>
+</html>
