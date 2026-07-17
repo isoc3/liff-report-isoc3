@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบรายงานบูรณาการ ศนป.กอ.รมน.ภาค 3</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; }
+    .menu-card { transition: all 0.3s ease; }
+    .menu-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+  <div class="w-full max-w-3xl bg-white rounded-3xl shadow-xl overflow-hidden">
+    <div class="bg-slate-800 p-8 text-center text-white">
+      <div class="w-20 h-20 bg-white rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg">
+        <i class="fa-solid fa-shield-halved text-4xl text-slate-800"></i>
+      </div>
+      <h1 class="text-2xl md:text-3xl font-bold">ระบบรายงานบูรณาการ</h1>
+      <p class="text-slate-300 mt-2">ศนป.กอ.รมน.ภาค 3</p>
+    </div>
+
+    <div class="p-6 md:p-10 bg-slate-50">
+      <h2 class="text-lg font-bold text-slate-700 mb-6 text-center border-b border-slate-200 pb-3">กรุณาเลือกระบบที่ต้องการใช้งาน</h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+        <a href="form_weir.html" class="menu-card block bg-white border-2 border-orange-100 rounded-2xl p-6 hover:border-orange-500 cursor-pointer text-center group">
+          <div class="w-16 h-16 bg-orange-100 rounded-full mx-auto flex items-center justify-center mb-4 group-hover:bg-orange-500 transition-colors"><i class="fa-solid fa-water text-2xl text-orange-600 group-hover:text-white transition-colors"></i></div>
+          <h3 class="text-lg font-bold text-slate-800">ฟอร์มรายงานฝาย</h3><p class="text-sm text-slate-500 mt-1">บันทึกข้อมูลการสร้าง/ซ่อมแซมฝาย</p>
+        </a>
+
+        <a href="form_forest.html" class="menu-card block bg-white border-2 border-emerald-100 rounded-2xl p-6 hover:border-emerald-500 cursor-pointer text-center group">
+          <div class="w-16 h-16 bg-emerald-100 rounded-full mx-auto flex items-center justify-center mb-4 group-hover:bg-emerald-500 transition-colors"><i class="fa-solid fa-tree text-2xl text-emerald-600 group-hover:text-white transition-colors"></i></div>
+          <h3 class="text-lg font-bold text-slate-800">ฟอร์มรายงานปลูกป่า</h3><p class="text-sm text-slate-500 mt-1">บันทึกข้อมูลโครงการปลูกป่าทดแทน</p>
+        </a>
+
+        <a onclick="requirePassword('form_fire.html')" class="menu-card block bg-white border-2 border-red-100 rounded-2xl p-6 hover:border-red-500 cursor-pointer text-center group relative">
+          <i class="fa-solid fa-lock absolute top-4 right-4 text-slate-300 group-hover:text-red-500"></i>
+          <div class="w-16 h-16 bg-red-100 rounded-full mx-auto flex items-center justify-center mb-4 group-hover:bg-red-500 transition-colors"><i class="fa-solid fa-fire text-2xl text-red-600 group-hover:text-white transition-colors"></i></div>
+          <h3 class="text-lg font-bold text-slate-800">ฟอร์มจุดความร้อน</h3><p class="text-sm text-slate-500 mt-1">บันทึกสถิติ Hotspot ประจำวัน</p>
+        </a>
+
+        <a onclick="requirePassword('admin.html')" class="menu-card block bg-slate-800 border-2 border-slate-800 rounded-2xl p-6 hover:bg-slate-900 cursor-pointer text-center group relative">
+          <i class="fa-solid fa-lock absolute top-4 right-4 text-slate-500 group-hover:text-white"></i>
+          <div class="w-16 h-16 bg-slate-700 rounded-full mx-auto flex items-center justify-center mb-4 group-hover:bg-blue-600 transition-colors shadow-inner"><i class="fa-solid fa-user-shield text-2xl text-white"></i></div>
+          <h3 class="text-lg font-bold text-white">Admin Control Panel</h3><p class="text-sm text-slate-300 mt-1">จัดการข้อมูลและส่งรายงาน LINE</p>
+        </a>
+
+        <a onclick="requirePassword('dashboard_fire.html')" class="menu-card block bg-gradient-to-br from-red-50 to-orange-50 border-2 border-red-200 rounded-2xl p-6 hover:border-red-500 cursor-pointer text-center group md:col-span-2 relative">
+          <i class="fa-solid fa-lock absolute top-4 right-4 text-slate-300 group-hover:text-red-500"></i>
+          <div class="w-16 h-16 bg-red-100 rounded-full mx-auto flex items-center justify-center mb-4 group-hover:bg-red-500 transition-colors shadow-sm"><i class="fa-solid fa-map-location-dot text-2xl text-red-600 group-hover:text-white transition-colors"></i></div>
+          <h3 class="text-lg font-bold text-slate-800">แดชบอร์ดสถานการณ์ไฟป่า</h3><p class="text-sm text-slate-600 mt-1">ดูแผนที่จุดความร้อนและอันดับ PM2.5</p>
+        </a>
+
+        <a onclick="requirePassword('settings.html')" class="menu-card block bg-white border-2 border-slate-200 rounded-2xl p-6 hover:border-slate-500 cursor-pointer text-center group md:col-span-2 relative">
+          <i class="fa-solid fa-lock absolute top-4 right-4 text-slate-300 group-hover:text-slate-600"></i>
+          <div class="w-16 h-16 bg-slate-100 rounded-full mx-auto flex items-center justify-center mb-4 group-hover:bg-slate-600 transition-colors"><i class="fa-solid fa-gears text-2xl text-slate-500 group-hover:text-white transition-colors"></i></div>
+          <h3 class="text-lg font-bold text-slate-800">ตั้งค่าระบบดึงข้อมูล (Settings)</h3><p class="text-sm text-slate-500 mt-1">กำหนดช่วงเวลาเริ่ม-สิ้นสุด การดึงข้อมูลฝุ่น</p>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SECRET_PASSWORD = "isoc37590"; 
+    function requirePassword(targetPage) {
+      Swal.fire({
+        title: '🔒 กรุณาใส่รหัสผ่าน', text: 'ส่วนนี้สงวนสิทธิ์เฉพาะเจ้าหน้าที่แอดมินเท่านั้น', input: 'password',
+        inputAttributes: { autocapitalize: 'off', autocorrect: 'off', placeholder: 'พิมพ์รหัสผ่านที่นี่...' },
+        showCancelButton: true, confirmButtonText: 'เข้าสู่ระบบ', cancelButtonText: 'ยกเลิก', confirmButtonColor: '#1e293b', cancelButtonColor: '#94a3b8',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          if (result.value === SECRET_PASSWORD) {
+            Swal.fire({ icon: 'success', title: 'รหัสผ่านถูกต้อง!', showConfirmButton: false, timer: 1000 }).then(() => { window.location.href = targetPage; });
+          } else {
+            Swal.fire({ icon: 'error', title: 'รหัสผ่านไม่ถูกต้อง!', text: 'กรุณาลองใหม่อีกครั้งครับ', confirmButtonColor: '#ef4444' });
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
