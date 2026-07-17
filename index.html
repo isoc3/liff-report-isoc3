@@ -8,190 +8,110 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
-  <!-- LINE LIFF SDK -->
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
     body { font-family: 'Sarabun', sans-serif; background-color: #f1f5f9; }
     .check-card { transition: all 0.2s; }
     .check-card:has(input:checked) { border-color: #3b82f6; background-color: #eff6ff; }
-    /* สไตล์พิเศษสำหรับ Universal Card */
     .check-card-uni:has(input:checked) { border-color: #f59e0b; background-color: #fffbeb; }
   </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
   <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
-    <!-- Header -->
     <div class="bg-slate-900 pt-8 pb-6 px-6 text-center text-white border-b-4 border-blue-500">
       <h1 class="text-2xl font-bold">ศนป.กอ.รมน.ภาค 3</h1>
       <p class="text-slate-300 text-sm mt-1">ศูนย์รวมการแชร์รายงานบูรณาการ (Carousel)</p>
     </div>
-
     <div class="p-6 space-y-4">
-      
-      <!-- สถานะการโหลด -->
       <div id="loadingStatus" class="text-center text-slate-500 font-bold text-sm mb-2 animate-pulse">
-        <i class="fa-solid fa-hourglass-half text-amber-500"></i> กำลังโหลดข้อมูลล่าสุดจาก Sheets...
+        <i class="fa-solid fa-hourglass-half text-amber-500"></i> กำลังโหลดข้อมูลล่าสุด...
       </div>
-
-      <!-- ตัวเลือกการ์ด (จะถูกซ่อนไว้จนกว่าจะโหลดเสร็จ) -->
       <div id="cardSelection" class="space-y-3 hidden">
-        
-        <!-- ไฟป่า -->
         <label id="labelFire" class="check-card flex items-center gap-4 p-4 border-2 border-slate-200 rounded-xl cursor-pointer opacity-50 pointer-events-none">
           <input type="checkbox" id="chkFire" class="w-5 h-5 accent-blue-600 rounded">
           <span class="font-bold text-slate-700 text-lg"><i class="fa-solid fa-fire text-red-500 w-6"></i> รายงานไฟป่าและฝุ่น</span>
         </label>
-
-        <!-- ฝาย -->
         <label id="labelWeir" class="check-card flex items-center gap-4 p-4 border-2 border-slate-200 rounded-xl cursor-pointer opacity-50 pointer-events-none">
           <input type="checkbox" id="chkWeir" class="w-5 h-5 accent-blue-600 rounded">
           <span class="font-bold text-slate-700 text-lg"><i class="fa-solid fa-water text-blue-500 w-6"></i> รายงานการสร้างฝาย</span>
         </label>
-
-        <!-- ปลูกป่า -->
         <label id="labelForest" class="check-card flex items-center gap-4 p-4 border-2 border-slate-200 rounded-xl cursor-pointer opacity-50 pointer-events-none">
           <input type="checkbox" id="chkForest" class="w-5 h-5 accent-blue-600 rounded">
           <span class="font-bold text-slate-700 text-lg"><i class="fa-solid fa-tree text-emerald-500 w-6"></i> รายงานปลูกป่าทดแทน</span>
         </label>
-
-        <!-- 🌟 การ์ดพิเศษ (Universal) -->
         <label id="labelUniversal" class="check-card check-card-uni flex items-center gap-4 p-4 border-2 border-slate-200 rounded-xl cursor-pointer opacity-50 pointer-events-none">
           <input type="checkbox" id="chkUniversal" class="w-5 h-5 accent-amber-500 rounded">
           <span class="font-bold text-slate-700 text-lg"><i class="fa-solid fa-star text-amber-500 w-6"></i> การ์ดรายงานพิเศษ</span>
         </label>
-
       </div>
-
-      <!-- ปุ่มแชร์ -->
       <button id="btnShare" disabled onclick="shareTargetPicker()" class="w-full bg-slate-300 text-white font-bold py-4 rounded-xl shadow mt-4 transition text-lg flex items-center justify-center gap-2 cursor-not-allowed">
         <i class="fa-solid fa-hourglass-half"></i> รอสักครู่...
       </button>
-
     </div>
   </div>
 
   <script>
-    // การตั้งค่า
     const LIFF_ID = "2010468749-0aq8Z3bf"; 
     const GAS_URL = "https://script.google.com/macros/s/AKfycbwdkeaxpJXAhKnb_d0qMoVZvDY1c4snIqFqECqjxY7ZEDwsDxDA_TZZpdd7FIM9FPvpXg/exec"; 
 
     let cachedCards = {};
 
-    // 1. โหลด LIFF และ โหลดข้อมูลพร้อมกัน
     window.onload = async () => {
       try {
         await liff.init({ liffId: LIFF_ID });
-        if (!liff.isLoggedIn()) {
-          liff.login();
-          return;
-        }
+        if (!liff.isLoggedIn()) { liff.login(); return; }
         fetchData();
-      } catch (err) {
-        Swal.fire('Error', 'ไม่สามารถเชื่อมต่อ LINE LIFF ได้\n' + err.message, 'error');
-      }
+      } catch (err) { Swal.fire('Error', 'เชื่อมต่อ LINE ไม่ได้\n' + err.message, 'error'); }
     };
 
-    // 2. ดึงข้อมูลแบบไว (Cache) จาก GAS
     async function fetchData() {
       try {
         const response = await fetch(GAS_URL + "?action=get_share_data");
         cachedCards = await response.json();
-
         let hasAnyData = false;
 
-        // เช็คการ์ดไฟป่า
-        if (cachedCards.fire) {
-          document.getElementById('labelFire').classList.remove('opacity-50', 'pointer-events-none');
-          document.getElementById('chkFire').checked = true;
-          hasAnyData = true;
-        }
-        // เช็คการ์ดฝาย
-        if (cachedCards.weir) {
-          document.getElementById('labelWeir').classList.remove('opacity-50', 'pointer-events-none');
-          document.getElementById('chkWeir').checked = true;
-          hasAnyData = true;
-        }
-        // เช็คการ์ดปลูกป่า
-        if (cachedCards.forest) {
-          document.getElementById('labelForest').classList.remove('opacity-50', 'pointer-events-none');
-          document.getElementById('chkForest').checked = true;
-          hasAnyData = true;
-        }
-        // 🌟 เช็คการ์ดพิเศษ (Universal Card)
-        if (cachedCards.universal) {
-          document.getElementById('labelUniversal').classList.remove('opacity-50', 'pointer-events-none');
-          document.getElementById('chkUniversal').checked = true;
-          hasAnyData = true;
-        }
+        if (cachedCards.fire) { document.getElementById('labelFire').classList.remove('opacity-50', 'pointer-events-none'); document.getElementById('chkFire').checked = true; hasAnyData = true; }
+        if (cachedCards.weir) { document.getElementById('labelWeir').classList.remove('opacity-50', 'pointer-events-none'); document.getElementById('chkWeir').checked = true; hasAnyData = true; }
+        if (cachedCards.forest) { document.getElementById('labelForest').classList.remove('opacity-50', 'pointer-events-none'); document.getElementById('chkForest').checked = true; hasAnyData = true; }
+        if (cachedCards.universal && cachedCards.universal.length > 0) { document.getElementById('labelUniversal').classList.remove('opacity-50', 'pointer-events-none'); document.getElementById('chkUniversal').checked = true; hasAnyData = true; }
 
         const statusEl = document.getElementById('loadingStatus');
         const btn = document.getElementById('btnShare');
 
         if (!hasAnyData) {
-          statusEl.innerHTML = `<i class="fa-solid fa-circle-exclamation text-red-500"></i> ยังไม่มีข้อมูลการ์ดของวันนี้ (Admin ต้องกดส่ง 1 ครั้งก่อน)`;
-          btn.innerHTML = 'ไม่มีข้อมูลให้แชร์';
+          statusEl.innerHTML = `<i class="fa-solid fa-circle-exclamation text-red-500"></i> ไม่มีข้อมูลให้แชร์`;
+          btn.innerHTML = 'ยังไม่มีข้อมูล';
         } else {
           statusEl.style.display = 'none';
           document.getElementById('cardSelection').classList.remove('hidden');
-          
-          btn.disabled = false;
-          btn.classList.replace('bg-slate-300', 'bg-blue-600');
-          btn.classList.replace('cursor-not-allowed', 'hover:bg-blue-700');
+          btn.disabled = false; btn.classList.replace('bg-slate-300', 'bg-blue-600'); btn.classList.replace('cursor-not-allowed', 'hover:bg-blue-700');
           btn.innerHTML = '<i class="fa-solid fa-share-nodes"></i> เลือกเพื่อน/กลุ่ม เพื่อแชร์ต่อ';
         }
-
-      } catch (error) {
-        document.getElementById('loadingStatus').innerHTML = `<i class="fa-solid fa-triangle-exclamation text-red-500"></i> โหลดข้อมูลล้มเหลว!`;
-        console.error(error);
-      }
+      } catch (error) { document.getElementById('loadingStatus').innerHTML = `<i class="fa-solid fa-triangle-exclamation text-red-500"></i> โหลดข้อมูลล้มเหลว!`; }
     }
 
-    // 3. ฟังก์ชันแชร์ผ่าน LINE
     async function shareTargetPicker() {
-      const sendFire = document.getElementById('chkFire').checked;
-      const sendWeir = document.getElementById('chkWeir').checked;
-      const sendForest = document.getElementById('chkForest').checked;
-      const sendUni = document.getElementById('chkUniversal').checked;
-
       let bubbles = [];
-      if (sendFire && cachedCards.fire) bubbles.push(cachedCards.fire);
-      if (sendWeir && cachedCards.weir) bubbles.push(cachedCards.weir);
-      if (sendForest && cachedCards.forest) bubbles.push(cachedCards.forest);
-      if (sendUni && cachedCards.universal) bubbles.push(cachedCards.universal);
-
-      if (bubbles.length === 0) {
-        return Swal.fire('แจ้งเตือน', 'กรุณาติ๊กเลือกรายงานอย่างน้อย 1 รายการครับ', 'warning');
+      if (document.getElementById('chkFire').checked && cachedCards.fire) bubbles.push(cachedCards.fire);
+      if (document.getElementById('chkWeir').checked && cachedCards.weir) bubbles.push(cachedCards.weir);
+      if (document.getElementById('chkForest').checked && cachedCards.forest) bubbles.push(cachedCards.forest);
+      
+      if (document.getElementById('chkUniversal').checked && cachedCards.universal) {
+        bubbles.push(...cachedCards.universal); 
       }
 
-      // ห่อเป็น Flex Message
+      if (bubbles.length === 0) return Swal.fire('แจ้งเตือน', 'กรุณาเลือกอย่างน้อย 1 รายการ', 'warning');
+
       let flexMessage = bubbles.length === 1 ? bubbles[0] : { "type": "carousel", "contents": bubbles };
-      let payload = [{
-        "type": "flex",
-        "altText": "📋 สรุปรายงาน ศนป.กอ.รมน.ภาค 3",
-        "contents": flexMessage
-      }];
+      let payload = [{ "type": "flex", "altText": "📋 สรุปรายงาน ศนป.กอ.รมน.ภาค 3", "contents": flexMessage }];
 
       if (liff.isApiAvailable('shareTargetPicker')) {
         try {
           const res = await liff.shareTargetPicker(payload);
-          if (res) {
-            Swal.fire({
-              title: 'สำเร็จ!',
-              text: 'แชร์รายงานเข้า LINE เรียบร้อยแล้ว',
-              icon: 'success',
-              confirmButtonColor: '#2563eb'
-            }).then(() => {
-              liff.closeWindow(); // ปิดหน้าต่างทันทีเมื่อส่งเสร็จ
-            });
-          }
-        } catch (err) {
-          console.error(err);
-          Swal.fire('Error', 'การแชร์ล้มเหลว (คุณอาจกดยกเลิก)', 'error');
-        }
-      } else {
-        Swal.fire('แจ้งเตือน', 'แอปพลิเคชันนี้ไม่รองรับการแชร์ (กรุณาเปิดลิงก์นี้ในแอป LINE)', 'warning');
-      }
+          if (res) Swal.fire({ title: 'สำเร็จ!', text: 'แชร์รายงานเรียบร้อยแล้ว', icon: 'success' }).then(() => liff.closeWindow());
+        } catch (err) { Swal.fire('Error', 'การแชร์ล้มเหลว', 'error'); }
+      } else { Swal.fire('แจ้งเตือน', 'แอปพลิเคชันนี้ไม่รองรับการแชร์บนเบราว์เซอร์นี้', 'warning'); }
     }
   </script>
 </body>
