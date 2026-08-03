@@ -15,7 +15,7 @@
   <div class="w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
     <div class="bg-slate-900 p-6 text-center text-white relative">
       <h1 class="text-2xl font-bold">🚀 Admin Control Panel (API Version)</h1>
-      <p class="text-slate-300 mt-1">โหลดไว ทนทาน ไม่มีค้าง!</p>
+      <p class="text-slate-300 mt-1">ระบบส่งรายงานไฟป่าแบบเปรียบเทียบย้อนหลัง</p>
       <a href="home.html" class="absolute top-4 right-4 bg-white/10 hover:bg-white/20 p-2 rounded-lg text-sm transition"><i class="fa-solid fa-house"></i> กลับเมนู</a>
     </div>
 
@@ -24,7 +24,7 @@
       <!-- เลือกวันที่ -->
       <div class="flex flex-col md:flex-row gap-4 bg-slate-50 p-6 rounded-xl border border-slate-200 items-center justify-between">
         <div>
-          <h3 class="font-bold text-slate-800"><i class="fa-regular fa-calendar text-blue-600"></i> เลือกวันที่ต้องการรายงาน</h3>
+          <h3 class="font-bold text-slate-800"><i class="fa-regular fa-calendar text-blue-600"></i> เลือกวันที่ต้องการรายงาน (การ์ดหลัก)</h3>
           <p class="text-sm text-slate-500">ระบบจะดึงข้อมูลล่าสุดของวันที่เลือกมาสร้างการ์ด</p>
         </div>
         <div class="flex gap-2 w-full md:w-auto">
@@ -37,20 +37,46 @@
       <div class="space-y-4">
         <h3 class="font-bold text-slate-800 text-lg border-b pb-2"><i class="fa-solid fa-layer-group text-blue-600"></i> เลือกการ์ดที่จะส่ง</h3>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          
+          <!-- บล็อกไฟป่า (อัปเดตใหม่) -->
           <div class="border-2 border-red-100 rounded-xl p-4 bg-white shadow-sm flex flex-col gap-3" id="boxFire">
-            <label class="flex items-center gap-3 font-bold text-slate-800 cursor-pointer"><input type="checkbox" id="chkFire" checked class="w-5 h-5 accent-red-600"> <span class="text-red-600"><i class="fa-solid fa-fire"></i> ไฟป่าและฝุ่น</span></label>
-            <div id="statusFire" class="text-sm text-slate-500">รอการดึงข้อมูล...</div>
-            <input type="text" id="imgFire" placeholder="Image URL..." value="https://images.unsplash.com/photo-1590055531615-f16d36ffe8ce?q=80&w=800" class="w-full text-xs p-2 border rounded bg-slate-50">
+            <label class="flex items-center gap-3 font-bold text-slate-800 cursor-pointer">
+              <input type="checkbox" id="chkFire" checked class="w-5 h-5 accent-red-600"> 
+              <span class="text-red-600"><i class="fa-solid fa-fire"></i> ไฟป่าและฝุ่น</span>
+            </label>
+            
+            <!-- ออปชันเปรียบเทียบย้อนหลัง -->
+            <div class="pl-8 flex flex-col gap-2 border-l-2 border-red-100 ml-2">
+               <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 cursor-pointer">
+                  <input type="checkbox" id="chkFireYesterday" class="w-4 h-4 accent-orange-500">
+                  แนบการ์ด "เมื่อวาน" (+1 ใบ)
+               </label>
+               <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 cursor-pointer">
+                  <input type="checkbox" id="chkFireSummary" class="w-4 h-4 accent-red-800" onchange="document.getElementById('dateRangeBox').style.display = this.checked ? 'block' : 'none'">
+                  แนบการ์ด "สรุปช่วงเวลา" (+1 ใบ)
+               </label>
+               <div id="dateRangeBox" style="display: none;" class="bg-slate-50 p-2 rounded border text-xs space-y-1">
+                  <div class="flex items-center justify-between">เริ่ม: <input type="date" id="sumStartDate" class="border rounded p-1 w-[120px]"></div>
+                  <div class="flex items-center justify-between">ถึง: <input type="date" id="sumEndDate" class="border rounded p-1 w-[120px]"></div>
+               </div>
+            </div>
+
+            <div id="statusFire" class="text-sm text-slate-500 border-t pt-2 mt-1">รอการดึงข้อมูล...</div>
+            <input type="text" id="imgFire" placeholder="Image URL (หน้าปกไฟป่า)..." value="https://images.unsplash.com/photo-1590055531615-f16d36ffe8ce?q=80&w=800" class="w-full text-xs p-2 border rounded bg-slate-50">
           </div>
+
+          <!-- บล็อกฝาย -->
           <div class="border-2 border-blue-100 rounded-xl p-4 bg-white shadow-sm flex flex-col gap-3" id="boxWeir">
             <label class="flex items-center gap-3 font-bold text-slate-800 cursor-pointer"><input type="checkbox" id="chkWeir" checked class="w-5 h-5 accent-blue-600"> <span class="text-blue-600"><i class="fa-solid fa-water"></i> สร้าง/ซ่อมฝาย</span></label>
             <div id="statusWeir" class="text-sm text-slate-500">รอการดึงข้อมูล...</div>
-            <input type="text" id="imgWeir" placeholder="Image URL..." value="https://images.unsplash.com/photo-1469122312224-c5846569feb1?q=80&w=800" class="w-full text-xs p-2 border rounded bg-slate-50">
+            <input type="text" id="imgWeir" placeholder="Image URL..." value="https://images.unsplash.com/photo-1469122312224-c5846569feb1?q=80&w=800" class="w-full text-xs p-2 border rounded bg-slate-50 mt-auto">
           </div>
+
+          <!-- บล็อกป่าไม้ -->
           <div class="border-2 border-emerald-100 rounded-xl p-4 bg-white shadow-sm flex flex-col gap-3" id="boxForest">
             <label class="flex items-center gap-3 font-bold text-slate-800 cursor-pointer"><input type="checkbox" id="chkForest" checked class="w-5 h-5 accent-emerald-600"> <span class="text-emerald-600"><i class="fa-solid fa-tree"></i> ปลูกป่าทดแทน</span></label>
             <div id="statusForest" class="text-sm text-slate-500">รอการดึงข้อมูล...</div>
-            <input type="text" id="imgForest" placeholder="Image URL..." value="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?q=80&w=800" class="w-full text-xs p-2 border rounded bg-slate-50">
+            <input type="text" id="imgForest" placeholder="Image URL..." value="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?q=80&w=800" class="w-full text-xs p-2 border rounded bg-slate-50 mt-auto">
           </div>
         </div>
       </div>
@@ -96,6 +122,12 @@
        const today = new Date();
        const localISOTime = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().slice(0, 10);
        document.getElementById('targetDate').value = localISOTime;
+       
+       // ตั้งค่า Default ปฏิทินช่วงเวลา (ย้อนหลัง 7 วัน)
+       document.getElementById('sumEndDate').value = localISOTime;
+       let weekAgo = new Date(today); weekAgo.setDate(weekAgo.getDate() - 6);
+       document.getElementById('sumStartDate').value = new Date(weekAgo.getTime() - (weekAgo.getTimezoneOffset() * 60000)).toISOString().slice(0, 10);
+       
        fetchData();
     });
 
@@ -162,17 +194,32 @@
       let dateStr = document.getElementById('targetDate').value;
       if(!dateStr) return;
       
+      let reqY = document.getElementById('chkFireYesterday').checked;
+      let reqS = document.getElementById('chkFireSummary').checked;
+      let sumStart = document.getElementById('sumStartDate').value;
+      let sumEnd = document.getElementById('sumEndDate').value;
+
       const btn = document.getElementById('btnFetch');
       btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; btn.disabled = true;
       document.getElementById('btnSend').disabled = true; document.getElementById('btnSend').classList.replace('bg-emerald-600', 'bg-slate-400');
 
+      let url = `${GAS_URL}?action=get_admin_data&date=${dateStr}&reqYesterday=${reqY}`;
+      if(reqS && sumStart && sumEnd) { url += `&sumStart=${sumStart}&sumEnd=${sumEnd}`; }
+
       try {
-        const response = await fetch(GAS_URL + "?action=get_admin_data&date=" + dateStr);
+        const response = await fetch(url);
         if(!response.ok) throw new Error("Network response was not ok");
         const res = await response.json();
-        
         currentData = res;
-        updateUI('Fire', res.fire.hasData, `PM2.5: ${res.fire.avgPM} | Hotspot: ${res.fire.hsCount} จุด`);
+
+        // อัปเดตสถานะ UI
+        let fireTxt = "";
+        if(res.fire.hasData) fireTxt += `<b>วันนี้:</b> พบฝุ่น ${res.fire.avgPM} / ความร้อน ${res.fire.hsCount} จุด<br>`;
+        if(reqY && res.fireYesterday) fireTxt += `<span class="text-orange-600"><b>ย้อนหลัง:</b> พบฝุ่น ${res.fireYesterday.avgPM} / ความร้อน ${res.fireYesterday.hsCount} จุด</span><br>`;
+        if(reqS && res.fireSummary) fireTxt += `<span class="text-red-700"><b>ช่วงเวลา:</b> พบฝุ่น(เฉลี่ย) ${res.fireSummary.avgPM} / ความร้อนสะสม ${res.fireSummary.hsCount} จุด</span>`;
+        if(fireTxt === "") fireTxt = "ไม่มีข้อมูล";
+
+        updateUI('Fire', res.fire.hasData || (reqY && res.fireYesterday?.hasData) || (reqS && res.fireSummary?.hasData), fireTxt);
         updateUI('Weir', res.weir.hasData, `${res.weir.unit} (${res.weir.count} ฝาย)`);
         updateUI('Forest', res.forest.hasData, `${res.forest.unit} (${res.forest.count} ต้น)`);
         
@@ -186,20 +233,51 @@
 
     function updateUI(type, hasData, text) {
       const statusEl = document.getElementById('status' + type); const boxEl = document.getElementById('box' + type); const chkEl = document.getElementById('chk' + type);
-      if(hasData) { statusEl.innerHTML = `<span class="text-emerald-600 font-bold"><i class="fa-solid fa-check-circle"></i> มีข้อมูล:</span> ${text}`; boxEl.classList.remove('opacity-50'); chkEl.checked = true; chkEl.disabled = false; } 
+      if(hasData) { statusEl.innerHTML = `<span class="text-emerald-600 font-bold"><i class="fa-solid fa-check-circle"></i> ตรวจพบข้อมูล:</span><br>${text}`; boxEl.classList.remove('opacity-50'); chkEl.checked = true; chkEl.disabled = false; } 
       else { statusEl.innerHTML = `<span class="text-red-500 font-bold"><i class="fa-solid fa-xmark-circle"></i> ไม่มีข้อมูล</span>`; boxEl.classList.add('opacity-50'); chkEl.checked = false; chkEl.disabled = true; }
     }
 
+    // ฟังก์ชันช่วยสร้าง HTML สำหรับ Preview (จำลองหน้าตาใน LINE)
+    function generateFirePreviewHtml(dataObj, title, hsLabel, pmLabel, colorHex, imgUrl) {
+      if(!dataObj || !dataObj.hasData) return "";
+      return `
+        <div class="min-w-[280px] w-[280px] bg-white border border-slate-300 rounded-[16px] overflow-hidden shadow-md flex-shrink-0 snap-center text-left flex flex-col">
+          <div class="bg-[#111827] p-3 flex items-center justify-between"><div class="w-8 h-8 bg-white/20 rounded-full"></div><div class="text-xs text-white font-bold">ศนป.กอ.รมน.ภาค 3</div><div class="w-8 h-8 bg-white/20 rounded-full"></div></div>
+          <div style="background-color: ${colorHex};" class="text-white text-[13px] font-bold text-center py-2">${title}</div>
+          <div class="h-32 bg-cover bg-center" style="background-image: url('${imgUrl}')"></div>
+          <div class="p-4 text-xs text-slate-700 space-y-2 flex-1 flex flex-col">
+            <div class="bg-blue-50 p-3 rounded-lg border border-blue-100">
+               <div class="font-bold text-blue-600 mb-1">${pmLabel}</div>
+               <div class="text-xl font-bold text-slate-800">${dataObj.avgPM} µg/m³</div>
+            </div>
+            <div class="font-bold text-red-600">🔥 ${hsLabel}: ${dataObj.hsCount} จุด</div>
+            <div class="text-center pt-4 text-slate-400 text-[10px] mt-auto border-t border-slate-100">ปุ่ม: อ่านรายละเอียด | 📤 แชร์ต่อ</div>
+          </div>
+        </div>`;
+    }
+
     function previewAndSend() {
-      const sendFire = document.getElementById('chkFire').checked; const sendWeir = document.getElementById('chkWeir').checked; const sendForest = document.getElementById('chkForest').checked; const sendUni = document.getElementById('chkUniversal').checked;
+      const sendFire = document.getElementById('chkFire').checked; 
+      const reqY = document.getElementById('chkFireYesterday').checked;
+      const reqS = document.getElementById('chkFireSummary').checked;
+      const sendWeir = document.getElementById('chkWeir').checked; 
+      const sendForest = document.getElementById('chkForest').checked; 
+      const sendUni = document.getElementById('chkUniversal').checked;
+      
       let uniNodes = document.querySelectorAll('.uni-card-item');
       if(!sendFire && !sendWeir && !sendForest && (!sendUni || uniNodes.length === 0)) return Swal.fire('แจ้งเตือน', 'กรุณาเลือกการ์ดอย่างน้อย 1 ใบครับ', 'warning');
 
       let cardsHtml = '';
+      
+      // พรีวิวการ์ดไฟป่า
       if(sendFire) {
         let img = document.getElementById('imgFire').value || 'https://images.unsplash.com/photo-1590055531615-f16d36ffe8ce?q=80&w=800';
-        cardsHtml += `<div class="min-w-[280px] w-[280px] bg-white border border-slate-300 rounded-[16px] overflow-hidden shadow-md flex-shrink-0 snap-center text-left flex flex-col"><div class="bg-[#111827] p-3 flex items-center justify-between"><div class="w-8 h-8 bg-white/20 rounded-full"></div><div class="text-xs text-white font-bold">ศนป.กอ.รมน.ภาค 3</div><div class="w-8 h-8 bg-white/20 rounded-full"></div></div><div class="bg-[#dc2626] text-white text-[13px] font-bold text-center py-2">🚨 รายงานสถานการณ์ไฟป่าและฝุ่น</div><div class="h-32 bg-cover bg-center" style="background-image: url('${img}')"></div><div class="p-4 text-xs text-slate-700 space-y-2 flex-1"><div class="bg-blue-50 p-3 rounded-lg border border-blue-100"><div class="font-bold text-blue-600 mb-1">ภาพรวม PM2.5 ภาคเหนือ</div><div class="text-xl font-bold text-slate-800">${currentData.fire.avgPM} µg/m³</div></div><div class="font-bold text-red-600">🔥 จุดความร้อนรวม: ${currentData.fire.hsCount} จุด</div><div class="text-center pt-4 text-slate-400 text-[10px] mt-auto border-t border-slate-100">ปุ่ม: อ่านรายละเอียด | 📤 แชร์ต่อ</div></div></div>`;
+        cardsHtml += generateFirePreviewHtml(currentData.fire, "🚨 รายงานสถานการณ์ไฟป่าและฝุ่น", "จุดความร้อนรวม", "ภาพรวม PM2.5 ภาคเหนือ", "#dc2626", img);
+        
+        if(reqY) cardsHtml += generateFirePreviewHtml(currentData.fireYesterday, "🚨 ข้อมูลย้อนหลัง (เมื่อวาน)", "จุดความร้อนเมื่อวาน", "PM2.5 ย้อนหลัง", "#ea580c", img);
+        if(reqS) cardsHtml += generateFirePreviewHtml(currentData.fireSummary, "🚨 สรุปสถานการณ์ตามช่วงเวลา", "รวมจุดความร้อนสะสม", "PM2.5 เฉลี่ยช่วงนี้", "#991b1b", img);
       }
+
       if(sendWeir) {
         let img = document.getElementById('imgWeir').value || 'https://images.unsplash.com/photo-1469122312224-c5846569feb1?q=80&w=800';
         cardsHtml += `<div class="min-w-[280px] w-[280px] bg-white border border-slate-300 rounded-[16px] overflow-hidden shadow-md flex-shrink-0 snap-center text-left flex flex-col"><div class="bg-[#111827] p-3 flex items-center justify-between"><div class="w-8 h-8 bg-white/20 rounded-full"></div><div class="text-xs text-white font-bold">ศนป.กอ.รมน.ภาค 3</div><div class="w-8 h-8 bg-white/20 rounded-full"></div></div><div class="bg-[#0284c7] text-white text-[13px] font-bold text-center py-2">💧 รายงานสรุปการสร้าง/ซ่อมแซมฝาย</div><div class="h-32 bg-cover bg-center" style="background-image: url('${img}')"></div><div class="p-4 text-xs text-slate-700 space-y-3 flex-1 flex flex-col"><div class="flex justify-between border-b pb-2"><span class="text-slate-500">หน่วยดำเนินการ:</span> <span class="font-bold text-right">${currentData.weir.unit}</span></div><div class="flex justify-between border-b pb-2"><span class="text-slate-500">ประเภทฝาย:</span> <span class="font-bold text-right">${currentData.weir.type}</span></div><div class="text-center pt-4 text-slate-400 text-[10px] mt-auto border-t border-slate-100">ปุ่ม: อ่านรายละเอียด | 📤 แชร์ต่อ</div></div></div>`;
@@ -232,18 +310,19 @@
 
       Swal.fire({
         title: 'ตรวจสอบก่อนส่ง (Preview)',
-        html: `<div class="text-left text-sm mb-3 font-bold text-slate-700"><i class="fa-solid fa-mobile-screen-button mr-1"></i> ภาพจำลอง:</div><div class="flex overflow-x-auto gap-4 pb-4 px-2 snap-x hide-scroll bg-slate-100 py-6 rounded-xl border-y border-slate-300 shadow-inner">${cardsHtml}</div>`,
+        html: `<div class="text-left text-sm mb-3 font-bold text-slate-700"><i class="fa-solid fa-mobile-screen-button mr-1"></i> ภาพจำลอง (ปัดเลื่อนซ้ายขวาได้):</div><div class="flex overflow-x-auto gap-4 pb-4 px-2 snap-x hide-scroll bg-slate-100 py-6 rounded-xl border-y border-slate-300 shadow-inner">${cardsHtml}</div>`,
         width: 'auto', padding: '1em', showCancelButton: true, confirmButtonText: '<i class="fa-regular fa-paper-plane"></i> ยืนยันส่งเข้า LINE', cancelButtonText: 'ยกเลิก', confirmButtonColor: '#059669', customClass: { popup: 'rounded-3xl' }
       }).then((result) => {
-        if (result.isConfirmed) executeSend(sendFire, sendWeir, sendForest, sendUni, universalList);
+        if (result.isConfirmed) executeSend(sendFire, reqY, reqS, sendWeir, sendForest, sendUni, universalList);
       });
     }
 
-    // ⚡️ ฟังก์ชันส่งข้อมูลเข้า API ด้วย Fetch POST
-    async function executeSend(sendFire, sendWeir, sendForest, sendUni, universalList) {
+    // ⚡️ ฟังก์ชันส่งข้อมูลเข้า API 
+    async function executeSend(sendFire, reqY, reqS, sendWeir, sendForest, sendUni, universalList) {
       const payload = {
-        date: document.getElementById('targetDate').value, target: document.getElementById('targetGroup').value,
-        cards: { fire: sendFire, weir: sendWeir, forest: sendForest, universal: sendUni },
+        date: document.getElementById('targetDate').value, 
+        target: document.getElementById('targetGroup').value,
+        cards: { fire: sendFire, fireYesterday: reqY, fireSummary: reqS, weir: sendWeir, forest: sendForest, universal: sendUni },
         images: { fire: document.getElementById('imgFire').value, weir: document.getElementById('imgWeir').value, forest: document.getElementById('imgForest').value },
         data: currentData, universalList: universalList 
       };
