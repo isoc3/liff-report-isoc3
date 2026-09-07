@@ -86,7 +86,7 @@
   window.onload = function() {
     const today = new Date(); const tzOffset = today.getTimezoneOffset() * 60000;
     document.getElementById('reportDate').value = (new Date(Date.now() - tzOffset)).toISOString().split('T')[0];
-    document.getElementById('reportTime').value = today.getHours() < 12 ? "รอบเช้า (08.00) น." : "รอบเย็น (16.00) น.";
+    document.getElementById('reportTime').value = today.getHours() < 12 ? "รอบเช้า (10.00) น." : "รอบเย็น (16.00) น.";
 
     const provBody = document.getElementById('province-inputs');
     provinces.forEach(p => { provBody.innerHTML += `<tr><td><label>${p}</label></td><td style="text-align:right;"><input type="number" class="prov-input" data-name="${p}" value="0" min="0" oninput="calculateTotals()"></td></tr>`; });
